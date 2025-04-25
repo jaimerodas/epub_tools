@@ -33,15 +33,15 @@ class SplitChapters
 
     doc.at('body').children.each do |node|
       if (m = node.text.match(/Chapter\s+(\d+)/i)) && %w[p span h3].include?(node.name)
+        # start a new chapter (skip the marker node so title isn't duplicated)
         chapters[current_number] = current_fragment.to_html if current_number
         current_number = m[1].to_i
         current_fragment = Nokogiri::HTML::DocumentFragment.parse('')
-        current_fragment.add_child(node.dup)
       elsif prologue_marker?(node)
+        # start the prologue (skip the marker node)
         chapters[current_number] = current_fragment.to_html if current_number
         current_number = 0
         current_fragment = Nokogiri::HTML::DocumentFragment.parse('')
-        current_fragment.add_child(node.dup)
       else
         current_fragment&.add_child(node.dup)
       end
