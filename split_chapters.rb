@@ -1,6 +1,7 @@
 require 'nokogiri'
 require './text_style_class_finder'
 require './xhtml_cleaner'
+require 'yaml'
 
 class SplitChapters
   def initialize(input_file, output_dir = './chapters', output_prefix = 'chapter')
@@ -31,9 +32,14 @@ class SplitChapters
     current_fragment = nil
 
     doc.at('body').children.each do |node|
-      if node.text =~ /Chapter\s+(\d+)/i && %w[p span h3].include?(node.name)
+      if (m = node.text.match(/Chapter\s+(\d+)/i)) && %w[p span h3].include?(node.name)
         chapters[current_number] = current_fragment.to_html if current_number
-        current_number = Regexp.last_match(1).to_i
+        current_number = m[1].to_i
+        current_fragment = Nokogiri::HTML::DocumentFragment.parse('')
+        current_fragment.add_child(node.dup)
+      elsif prologue_marker?(node)
+        chapters[current_number] = current_fragment.to_html if current_number
+        current_number = 0
         current_fragment = Nokogiri::HTML::DocumentFragment.parse('')
         current_fragment.add_child(node.dup)
       else
@@ -51,23 +57,35 @@ class SplitChapters
     end
   end
 
-  def write_chapter_file(number, content)
-    filename = File.join(@output_dir, "#{@output_prefix}_#{number}.xhtml")
+  def write_chapter_file(label, content)
+    display_label = display_label(label)
+    filename = File.join(@output_dir, "#{@output_prefix}_#{label}.xhtml")
     File.write(filename, <<~HTML)
       <?xml version="1.0" encoding="UTF-8"?>
       <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
         <head>
-          <title>DM and the Dirty 20s - Chapter #{number}</title>
+          <title>DM and the Dirty 20s - #{display_label}</title>
           <link rel="stylesheet" type="text/css" href="style.css"/>
         </head>
         <body>
-          <h1>Chapter #{number}</h1>
+          <h1>#{display_label}</h1>
           #{content}
         </body>
       </html>
     HTML
     puts "Wrote #{filename}"
     XHTMLCleaner.new(filename).call
+  end
+
+  def display_label(label)
+    label > 0 ? "Chapter #{label}" : "Prologue"
+  end
+
+  # Detect a bolded Prologue marker
+  def prologue_marker?(node)
+    return false unless %w[h3].include?(node.name)
+    return false unless node.text.strip =~ /\APrologue\z/i
+    true
   end
 
 end
