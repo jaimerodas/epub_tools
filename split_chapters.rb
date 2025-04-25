@@ -37,7 +37,7 @@ class SplitChapters
     current_fragment = nil
 
     doc.at('body').children.each do |node|
-      if (m = node.text.match(/Chapter\s+(\d+)/i)) && %w[p span h3].include?(node.name)
+      if (m = node.text.match(/Chapter\s+(\d+)/i)) && %w[p span h3 h4].include?(node.name)
         # start a new chapter (skip the marker node so title isn't duplicated)
         chapters[current_number] = current_fragment.to_html if current_number
         current_number = m[1].to_i
@@ -88,7 +88,7 @@ class SplitChapters
 
   # Detect a bolded Prologue marker
   def prologue_marker?(node)
-    return false unless %w[h3].include?(node.name)
+    return false unless %w[h3 h4].include?(node.name)
     return false unless node.text.strip =~ /\APrologue\z/i
     true
   end

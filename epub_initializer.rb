@@ -17,7 +17,6 @@ class EpubInitializer
     write_container
     write_package_opf
     write_nav
-    write_chapter0
     write_style
   end
 
@@ -70,8 +69,7 @@ class EpubInitializer
   def write_nav
     content = <<~XHTML
       <?xml version="1.0" encoding="utf-8"?>
-      <!DOCTYPE html>
-      <html xmlns="http://www.w3.org/1999/xhtml">
+      <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
         <head>
           <title>Table of Contents</title>
         </head>
@@ -79,31 +77,12 @@ class EpubInitializer
           <nav epub:type="toc" id="toc">
             <h1>Table of Contents</h1>
             <ol>
-              <li><a href="chapter0.xhtml">Chapter 0</a></li>
             </ol>
           </nav>
         </body>
       </html>
     XHTML
     File.write("#{@destination}/OEBPS/nav.xhtml", content)
-  end
-
-  def write_chapter0
-    content = <<~XHTML
-      <?xml version="1.0" encoding="utf-8"?>
-      <!DOCTYPE html>
-      <html xmlns="http://www.w3.org/1999/xhtml">
-        <head>
-          <title>Chapter 0</title>
-          <link rel="stylesheet" type="text/css" href="style.css"/>
-        </head>
-        <body>
-          <h1>Chapter 0</h1>
-          <p>Start writing your book here.</p>
-        </body>
-      </html>
-    XHTML
-    File.write("#{@destination}/OEBPS/chapter0.xhtml", content)
   end
 
   def write_style

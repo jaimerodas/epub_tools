@@ -2,7 +2,7 @@ require 'nokogiri'
 require 'fileutils'
 
 class AddChaptersToEpub
-  def initialize(chapters_dir = './chapters', epub_dir = './combined_epub/OEBPS')
+  def initialize(chapters_dir = './chapters', epub_dir = './epub/OEBPS')
     @chapters_dir = chapters_dir
     @epub_dir = epub_dir
     @opf_file = File.join(@epub_dir, 'package.opf')
@@ -71,6 +71,6 @@ end
 
 if __FILE__ == $0
   chapters_dir = ARGV[0] || './chapters'
-  epub_dir = ARGV[1] || './combined_epub/OEBPS'
+  epub_dir = ARGV[1] || './epub/OEBPS'
   AddChaptersToEpub.new(chapters_dir, epub_dir).run
 end
