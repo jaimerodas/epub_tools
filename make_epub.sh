@@ -1,15 +1,22 @@
 #!/bin/bash
 
-# Usage: ./make_epub.sh folder_name [default.epub]
+# Usage: ./make_epub.sh <epub_folder> [book.epub]
 # Example: ./make_epub.sh my_epub_folder book.epub
 
+# Exit on error
 set -e
 
-INPUT_DIR="combined_epub"
-OUTPUT_FILE="dm-and-the-dirty-20s.epub"
+# Input directory (first arg) and output EPUB filename (optional second arg)
+INPUT_DIR="$1"
+# Default output to <input_dir>.epub if not provided
+OUTPUT_FILE="${2:-${INPUT_DIR}.epub}"
 
+# Usage message
+USAGE="Usage: $0 <epub_folder> [output_file.epub]"
+
+# Validate input
 if [[ -z "$INPUT_DIR" ]]; then
-  echo "Usage: $0 <epub_folder> [dm-and-the-dirty-20s.epub]"
+  echo "$USAGE"
   exit 1
 fi
 
@@ -25,12 +32,11 @@ if [[ ! -f "mimetype" ]]; then
   exit 1
 fi
 
-# Create EPUB file
+# Create EPUB file (uncompressed mimetype at front)
 TEMP_EPUB="../$OUTPUT_FILE"
 rm -f "$TEMP_EPUB"
 zip -X0 "$TEMP_EPUB" mimetype
 zip -Xr9D "$TEMP_EPUB" * -x mimetype
 
 cd ..
-
 echo "EPUB created: $OUTPUT_FILE"
