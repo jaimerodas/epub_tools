@@ -4,8 +4,13 @@ require './xhtml_cleaner'
 require 'yaml'
 
 class SplitChapters
-  def initialize(input_file, output_dir = './chapters', output_prefix = 'chapter')
+  # input_file: path to the source XHTML
+  # book_title: title to use in HTML <title> tags
+  # output_dir: where to write chapter files
+  # output_prefix: filename prefix (e.g. "chapter")
+  def initialize(input_file, book_title, output_dir = './chapters', output_prefix = 'chapter')
     @input_file    = input_file
+    @book_title    = book_title
     @output_dir    = output_dir
     @output_prefix = output_prefix
   end
@@ -64,7 +69,7 @@ class SplitChapters
       <?xml version="1.0" encoding="UTF-8"?>
       <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
         <head>
-          <title>DM and the Dirty 20s - #{display_label}</title>
+          <title>#{@book_title} - #{display_label}</title>
           <link rel="stylesheet" type="text/css" href="style.css"/>
         </head>
         <body>
@@ -91,8 +96,10 @@ class SplitChapters
 end
 
 if __FILE__ == $0
-  input_file    = ARGV[0] || abort("Usage: ruby #{__FILE__} input.xhtml [output_dir] [prefix]")
-  output_dir    = ARGV[1] || './chapters'
-  output_prefix = ARGV[2] || 'chapter'
-  SplitChapters.new(input_file, output_dir, output_prefix).run
+  usage = "Usage: ruby #{__FILE__} input.xhtml \"Book Title\" [output_dir] [prefix]"
+  input_file  = ARGV[0] || abort(usage)
+  book_title  = ARGV[1] || abort(usage)
+  output_dir  = ARGV[2] || './chapters'
+  output_pref = ARGV[3] || 'chapter'
+  SplitChapters.new(input_file, book_title, output_dir, output_pref).run
 end
