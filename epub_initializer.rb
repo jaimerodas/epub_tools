@@ -52,6 +52,10 @@ class EpubInitializer
           <dc:title>#{@title}</dc:title>
           <dc:creator>#{@author}</dc:creator>
           <meta property="dcterms:modified">#{@modified}</meta>
+          <meta property="schema:accessMode">textual</meta>
+          <meta property="schema:accessibilityFeature">unknown</meta>
+          <meta property="schema:accessibilityHazard">none</meta>
+          <meta property="schema:accessModeSufficient">textual</meta>
         </metadata>
         <manifest>
           <item id="style" href="style.css" media-type="text/css"/>
