@@ -1,2 +1,7 @@
 .DS_Store
+/.bundle/
+/coverage/
+vendor/bundle/
+*.gem
+
 text_style_classes.yaml
