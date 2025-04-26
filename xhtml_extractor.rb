@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'zip'
 require 'fileutils'
 
@@ -38,13 +39,14 @@ class XHTMLExtractor
   end
 end
 
-# Allow running from the command line
-if $PROGRAM_NAME == __FILE__
-  if ARGV.size != 2
-    puts "Usage: ruby #{__FILE__} <source_dir> <target_dir>"
-    exit 1
+if __FILE__ == $0
+  require_relative 'cli_helper'
+  options = {}
+  CLIHelper.parse(options, [:source_dir, :target_dir]) do |opts, o|
+    opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+    opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') { |v| o[:source_dir] = v }
+    opts.on('-t DIR', '--target-dir DIR', 'Directory where the XHTML files will be extracted to (required)') { |v| o[:target_dir] = v }
   end
 
-  service = XHTMLExtractor.new(source_dir: ARGV[0], target_dir: ARGV[1])
-  service.extract_all
+  XHTMLExtractor.new(source_dir: options[:source_dir], target_dir: options[:target_dir]).extract_all
 end

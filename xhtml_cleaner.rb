@@ -73,12 +73,14 @@ class XHTMLCleaner
   end
 end
 
-# Run from command line
-if $PROGRAM_NAME == __FILE__
-  unless ARGV.length == 1
-    puts "Usage: ruby xhtml_cleaner.rb filename.xhtml"
-    exit 1
+if __FILE__ == $0
+  require_relative 'cli_helper'
+  options = { class_config: 'text_style_classes.yaml' }
+  CLIHelper.parse(options, [:input]) do |opts, o|
+    opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+    opts.on('-i FILE', '--input FILE', 'XHTML file to clean (required)') { |v| options[:input] = v }
+    opts.on('-c FILE', '--classes FILE', "YAML config file for text style classes (default: #{options[:class_config]})") { |v| options[:class_config] = v }
   end
 
-  XHTMLCleaner.new(ARGV[0]).call
+  XHTMLCleaner.new(options[:input], options[:class_config]).call
 end

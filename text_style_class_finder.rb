@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'nokogiri'
 require 'yaml'
 
@@ -43,13 +44,16 @@ class TextStyleClassFinder
   end
 end
 
-# If executed directly from command line
+# CLI invocation
 if __FILE__ == $0
-  file_path = ARGV[0]
-  unless file_path
-    puts "Usage: ruby text_style_class_finder.rb yourfile.xhtml"
-    exit 1
+  require_relative 'cli_helper'
+  options = { output_path: 'text_style_classes.yaml', verbose: false }
+
+  CLIHelper.parse(options, [:file_path]) do |opts, o|
+    opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+    opts.on('-i FILE', '--input FILE', 'Source XHTML file (required)') { |v| options[:file_path] = v }
+    opts.on('-o FILE', '--output FILE', "Output YAML file (default: #{options[:output_path]})") { |v| options[:output_path] = v }
   end
 
-  TextStyleClassFinder.new(file_path).call
+  TextStyleClassFinder.new(options[:file_path], options[:output_path], options[:verbose]).call
 end

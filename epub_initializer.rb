@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'fileutils'
 require 'time'
 require 'securerandom'
@@ -192,17 +193,18 @@ class EpubInitializer
   end
 end
 
-# Allow running from the command line
-if $PROGRAM_NAME == __FILE__
-  # Accepts an optional 4th argument for cover image path
-  if ARGV.size < 3 || ARGV.size > 4
-    puts "Usage: ruby #{__FILE__} <title> <author> <target_dir> [cover_image_path]"
-    exit 1
+# CLI Invocation
+if __FILE__ == $0
+  require_relative 'cli_helper'
+
+  options = {}
+  CLIHelper.parse(options, [:title, :author, :destination]) do |opts, o|
+    opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+    opts.on('-t TITLE', '--title TITLE', 'Book title (required)') { |v| o[:title] = v }
+    opts.on('-a AUTHOR', '--author AUTHOR', 'Author name (required)') { |v| o[:author] = v }
+    opts.on('-o DIR', '--output-dir DIR', 'Destination EPUB directory (required)') { |v| o[:destination] = v }
+    opts.on('-c PATH', '--cover PATH', 'Cover image file path (optional)') { |v| o[:cover_image] = v }
   end
-  if ARGV.size == 4
-    service = EpubInitializer.new(ARGV[0], ARGV[1], ARGV[2], ARGV[3])
-  else
-    service = EpubInitializer.new(ARGV[0], ARGV[1], ARGV[2])
-  end
-  service.run
+
+  EpubInitializer.new(options[:title], options[:author], options[:destination], options[:cover_image]).run
 end

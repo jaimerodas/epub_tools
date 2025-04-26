@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'nokogiri'
 require './text_style_class_finder'
 require './xhtml_cleaner'
@@ -94,11 +95,15 @@ class SplitChapters
 
 end
 
-if __FILE__ == $0
-  usage = "Usage: ruby #{__FILE__} input.xhtml \"Book Title\" [output_dir] [prefix]"
-  input_file  = ARGV[0] || abort(usage)
-  book_title  = ARGV[1] || abort(usage)
-  output_dir  = ARGV[2] || './chapters'
-  output_pref = ARGV[3] || 'chapter'
-  SplitChapters.new(input_file, book_title, output_dir, output_pref).run
+if __FILE__ == $PROGRAM_NAME
+  require_relative 'cli_helper'
+  options = { output_dir: './chapters', prefix: 'chapter' }
+  CLIHelper.parse(options, [:input_file, :book_title]) do |opts, o|
+    opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+    opts.on('-i FILE', '--input FILE', 'Source XHTML file (required)') { |v| options[:input_file] = v }
+    opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') { |v| options[:book_title] = v }
+    opts.on('-o DIR', '--output-dir DIR', "Output directory for chapter files (default: #{options[:output_dir]})") { |v| options[:output_dir] = v }
+    opts.on('-p PREFIX', '--prefix PREFIX', "Filename prefix for chapters (default: #{options[:prefix]})") { |v| options[:prefix] = v }
+  end
+  SplitChapters.new(options[:input_file], options[:book_title], options[:output_dir], options[:prefix]).run
 end

@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'nokogiri'
 require 'fileutils'
 
@@ -89,7 +90,14 @@ class AddChaptersToEpub
 end
 
 if __FILE__ == $0
-  chapters_dir = ARGV[0] || './chapters'
-  epub_dir = ARGV[1] || './epub/OEBPS'
-  AddChaptersToEpub.new(chapters_dir, epub_dir).run
+  require_relative 'cli_helper'
+  options = { chapters_dir: './chapters', epub_dir: './epub/OEBPS' }
+
+  CLIParser.parse(options, [:chapters_dir, :epub_dir]) do |opts, o|
+    opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
+    opts.on('-c DIR', '--chapters DIR', "Directory containing chapter XHTML files (default: #{options[:chapters_dir]})") { |v| options[:chapters_dir] = v }
+    opts.on('-e DIR', '--epub-dir DIR', "OEBPS directory of EPUB to add chapters to (default: #{options[:epub_dir]})") { |v| options[:epub_dir] = v }
+  end
+
+  AddChaptersToEpub.new(options[:chapters_dir], options[:epub_dir]).run
 end
