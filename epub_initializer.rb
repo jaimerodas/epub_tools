@@ -60,7 +60,6 @@ class EpubInitializer
         <manifest>
           <item id="style" href="style.css" media-type="text/css"/>
           <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
-          <item id="chap0" href="chapter0.xhtml" media-type="application/xhtml+xml"/>
         </manifest>
         <spine>
           <itemref idref="chap0"/>
@@ -90,17 +89,13 @@ class EpubInitializer
   end
 
   def write_style
-    content = <<~CSS
-      body {
-        font-family: serif;
-        line-height: 1.5;
-        margin: 5%;
-      }
-      h1 {
-        text-align: center;
-      }
-    CSS
-    File.write("#{@destination}/OEBPS/style.css", content)
+    src = File.join(Dir.pwd, 'style.css')
+    dest = File.join(@destination, 'OEBPS', 'style.css')
+    unless File.exist?(src)
+      warn "Warning: style.css not found in project root (#{src}), skipping copy."
+      return
+    end
+    FileUtils.cp(src, dest)
   end
 end
 
