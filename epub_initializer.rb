@@ -14,6 +14,7 @@ class EpubInitializer
   def run
     create_structure
     write_mimetype
+    write_title_page
     write_container
     write_package_opf
     write_nav
@@ -31,9 +32,28 @@ class EpubInitializer
     File.write("#{@destination}/mimetype", "application/epub+zip")
   end
 
+  def write_title_page
+    content = <<~XHTML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <title>#{@title}</title>
+          <link rel="stylesheet" type="text/css" href="style.css"/>
+        </head>
+        <body>
+          <h1 class="title">#{@title}</h1>
+          <p class="author">by #{@author}</p>
+        </body>
+      </html>
+    XHTML
+
+    File.write("#{@destination}/OEBPS/title.xhtml", content)
+  end
+
   def write_container
     content = <<~XML
-      <?xml version="1.0"?>
+      <?xml version="1.0" encoding="UTF-8"?>
       <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
         <rootfiles>
           <rootfile full-path="OEBPS/package.opf" media-type="application/oebps-package+xml"/>
@@ -60,9 +80,10 @@ class EpubInitializer
         <manifest>
           <item id="style" href="style.css" media-type="text/css"/>
           <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+          <item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>
         </manifest>
         <spine>
-          <itemref idref="chap0"/>
+          <itemref idref="title"/>
         </spine>
       </package>
     XML
@@ -80,6 +101,7 @@ class EpubInitializer
           <nav epub:type="toc" id="toc">
             <h1>Table of Contents</h1>
             <ol>
+              <li><a href="title.xhtml">Title Page</a></li>
             </ol>
           </nav>
         </body>
