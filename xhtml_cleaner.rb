@@ -17,7 +17,6 @@ class XHTMLCleaner
     replace_italic_spans(doc)
     unwrap_remaining_spans(doc)
     write_pretty_output(doc)
-    puts "Cleaned #{@filename}"
   end
 
   private

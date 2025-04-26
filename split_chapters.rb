@@ -78,7 +78,6 @@ class SplitChapters
         </body>
       </html>
     HTML
-    puts "Wrote #{filename}"
     XHTMLCleaner.new(filename).call
   end
 

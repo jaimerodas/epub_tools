@@ -35,8 +35,8 @@ fi
 # Create EPUB file (uncompressed mimetype at front)
 TEMP_EPUB="../$OUTPUT_FILE"
 rm -f "$TEMP_EPUB"
-zip -X0 "$TEMP_EPUB" mimetype
-zip -Xr9D "$TEMP_EPUB" * -x mimetype
+zip -q -X0 "$TEMP_EPUB" mimetype
+zip -q -Xr9D "$TEMP_EPUB" * -x mimetype
 
 cd ..
 echo "EPUB created: $OUTPUT_FILE"

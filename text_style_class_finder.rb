@@ -2,9 +2,10 @@ require 'nokogiri'
 require 'yaml'
 
 class TextStyleClassFinder
-  def initialize(file_path, output_path = 'text_style_classes.yaml')
+  def initialize(file_path, output_path = 'text_style_classes.yaml', verbose = false)
     @file_path = file_path
     @output_path = output_path
+    @verbose = verbose
     raise ArgumentError, "File does not exist: #{@file_path}" unless File.exist?(@file_path)
   end
 
@@ -15,14 +16,13 @@ class TextStyleClassFinder
     italics = extract_classes(style_blocks, /font-style\s*:\s*italic/)
     bolds   = extract_classes(style_blocks, /font-weight\s*:\s*700/)
 
-    print_summary(italics, bolds)
+    print_summary(italics, bolds) if @verbose
 
     data = {
       "italics" => italics,
       "bolds"   => bolds
     }
     File.write(@output_path, data.to_yaml)
-    puts "\nSaved to #{@output_path}"
   end
 
   private
@@ -34,13 +34,11 @@ class TextStyleClassFinder
 
   def print_summary(italics, bolds)
     unless italics.empty?
-      puts "Classes with font-style: italic:"
-      italics.each { |cls| puts ".#{cls}" }
+      puts "Classes with font-style: italic: #{italics.join(", ")}"
     end
 
     unless bolds.empty?
-      puts "\nClasses with font-weight: 700:"
-      bolds.each { |cls| puts ".#{cls}" }
+      puts "Classes with font-weight: 700: #{bolds.join(", ")}"
     end
   end
 end
