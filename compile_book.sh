@@ -2,18 +2,35 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 <Book Title> <Author> <Source EPUBs Dir> [Output EPUB Filename]"
+  echo "Usage: $0 <Book Title> <Author> <Source EPUBs Dir> [Cover Image Path] [Output EPUB Filename]"
   exit 1
 }
 
-if [[ $# -lt 3 ]]; then
+if [[ $# -lt 3 || $# -gt 5 ]]; then
   usage
 fi
 
 TITLE="$1"
 AUTHOR="$2"
 SOURCE_DIR="$3"
-OUTPUT_FILE="${4:-${TITLE// /_}.epub}"
+# Parse optional cover image and output filename
+COVER_IMAGE=""
+case $# in
+  3)
+    OUTPUT_FILE="${TITLE// /_}.epub";;
+  4)
+    if [[ "${4}" == *.epub ]]; then
+      OUTPUT_FILE="${4}"
+    else
+      COVER_IMAGE="${4}"
+      OUTPUT_FILE="${TITLE// /_}.epub"
+    fi;;
+  5)
+    COVER_IMAGE="${4}"
+    OUTPUT_FILE="${5}";;
+  *)
+    usage;;
+esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -68,7 +85,11 @@ else
 fi
 
 echo "Initializing new EPUB..."
-ruby "$SCRIPT_DIR/epub_initializer.rb" "$TITLE" "$AUTHOR" "$EPUB_DIR"
+if [[ -n "$COVER_IMAGE" ]]; then
+  ruby "$SCRIPT_DIR/epub_initializer.rb" "$TITLE" "$AUTHOR" "$EPUB_DIR" "$COVER_IMAGE"
+else
+  ruby "$SCRIPT_DIR/epub_initializer.rb" "$TITLE" "$AUTHOR" "$EPUB_DIR"
+fi
 
 echo "Adding chapters to EPUB..."
 ruby "$SCRIPT_DIR/add_chapters_to_epub.rb" "$CHAPTERS_DIR" "$EPUB_DIR/OEBPS"
@@ -79,4 +100,4 @@ echo "Building final EPUB '$OUTPUT_FILE'..."
 echo "Done. Output EPUB: $(pwd)/$OUTPUT_FILE"
 
 # Cleanup build directory
-# rm -rf "$BUILD_DIR"
+rm -rf "$BUILD_DIR"

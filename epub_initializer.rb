@@ -3,12 +3,17 @@ require 'time'
 require 'securerandom'
 
 class EpubInitializer
-  def initialize(title, author, destination)
+  # title: book title; author: author name; destination: output EPUB directory
+  # cover_image: optional path to cover image file
+  def initialize(title, author, destination, cover_image = nil)
     @title = title
     @author = author
     @destination = File.expand_path(destination)
     @uuid = "urn:uuid:#{SecureRandom.uuid}"
     @modified = Time.now.utc.iso8601
+    @cover_image_path = cover_image
+    @cover_image_fname = nil
+    @cover_image_media_type = nil
   end
 
   def run
@@ -16,6 +21,7 @@ class EpubInitializer
     write_mimetype
     write_title_page
     write_container
+    write_cover if @cover_image_path
     write_package_opf
     write_nav
     write_style
@@ -63,33 +69,98 @@ class EpubInitializer
     File.write("#{@destination}/META-INF/container.xml", content)
   end
 
+  # Copies the cover image into the EPUB structure and creates a cover.xhtml page
+  def write_cover
+    path = @cover_image_path
+    unless File.exist?(path)
+      warn "Warning: cover image '#{path}' not found; skipping cover support."
+      return
+    end
+    ext = File.extname(path).downcase
+    @cover_image_media_type = case ext
+                              when '.jpg', '.jpeg' then 'image/jpeg'
+                              when '.png' then 'image/png'
+                              when '.gif' then 'image/gif'
+                              when '.svg' then 'image/svg+xml'
+                              else
+                                warn "Warning: unsupported cover image type '#{ext}'; skipping cover support."
+                                return
+                              end
+    @cover_image_fname = "cover#{ext}"
+    dest = File.join(@destination, 'OEBPS', @cover_image_fname)
+    FileUtils.cp(path, dest)
+    write_cover_page
+  end
+
+  # Generates a cover.xhtml file displaying the cover image
+  def write_cover_page
+    content = <<~XHTML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Cover</title>
+          <link rel="stylesheet" type="text/css" href="style.css"/>
+        </head>
+        <body>
+          <div class="cover-image">
+            <img src="#{@cover_image_fname}" alt="Cover"/>
+          </div>
+        </body>
+      </html>
+    XHTML
+    File.write(File.join(@destination, 'OEBPS', 'cover.xhtml'), content)
+  end
+
+  # Generates the package.opf with optional cover image entries
   def write_package_opf
+    manifest_items = []
+    spine_items = []
+
+    manifest_items << '<item id="style" href="style.css" media-type="text/css"/>'
+    manifest_items << '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'
+
+    if @cover_image_fname
+      manifest_items << %Q{<item id="cover-image" href="#{@cover_image_fname}" media-type="#{@cover_image_media_type}" properties="cover-image"/>}
+      manifest_items << '<item id="cover-page" href="cover.xhtml" media-type="application/xhtml+xml"/>'
+      spine_items << '<itemref idref="cover-page"/>'
+    end
+
+    manifest_items << '<item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>'
+    spine_items << '<itemref idref="title"/>'
+
+    metadata = []
+    metadata << %Q{<dc:identifier id="pub-id">#{@uuid}</dc:identifier>}
+    metadata << %Q{<dc:title>#{@title}</dc:title>}
+    metadata << %Q{<dc:creator>#{@author}</dc:creator>}
+    metadata << %Q{<meta property="dcterms:modified">#{@modified}</meta>}
+    metadata << %Q{<meta property="schema:accessMode">textual</meta>}
+    metadata << %Q{<meta property="schema:accessibilityFeature">unknown</meta>}
+    metadata << %Q{<meta property="schema:accessibilityHazard">none</meta>}
+    metadata << %Q{<meta property="schema:accessModeSufficient">textual</meta>}
+    if @cover_image_fname
+      metadata << %Q{<meta name="cover" content="cover-image"/>}
+    end
+
     content = <<~XML
       <?xml version="1.0" encoding="utf-8"?>
       <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="en">
         <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-          <dc:identifier id="pub-id">#{@uuid}</dc:identifier>
-          <dc:title>#{@title}</dc:title>
-          <dc:creator>#{@author}</dc:creator>
-          <meta property="dcterms:modified">#{@modified}</meta>
-          <meta property="schema:accessMode">textual</meta>
-          <meta property="schema:accessibilityFeature">unknown</meta>
-          <meta property="schema:accessibilityHazard">none</meta>
-          <meta property="schema:accessModeSufficient">textual</meta>
+      #{metadata.map { |line| "    #{line}" }.join("\n")}
         </metadata>
         <manifest>
-          <item id="style" href="style.css" media-type="text/css"/>
-          <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
-          <item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>
+      #{manifest_items.map { |line| "    #{line}" }.join("\n")}
         </manifest>
         <spine>
-          <itemref idref="title"/>
+      #{spine_items.map { |line| "    #{line}" }.join("\n")}
         </spine>
       </package>
     XML
-    File.write("#{@destination}/OEBPS/package.opf", content)
+
+    File.write(File.join(@destination, 'OEBPS', 'package.opf'), content)
   end
 
+  # Generates the initial navigation document (Table of Contents)
   def write_nav
     content = <<~XHTML
       <?xml version="1.0" encoding="utf-8"?>
@@ -107,7 +178,7 @@ class EpubInitializer
         </body>
       </html>
     XHTML
-    File.write("#{@destination}/OEBPS/nav.xhtml", content)
+    File.write(File.join(@destination, 'OEBPS', 'nav.xhtml'), content)
   end
 
   def write_style
@@ -123,11 +194,15 @@ end
 
 # Allow running from the command line
 if $PROGRAM_NAME == __FILE__
-  if ARGV.size != 3
-    puts "Usage: ruby #{__FILE__} <title> <author> <target_dir>"
+  # Accepts an optional 4th argument for cover image path
+  if ARGV.size < 3 || ARGV.size > 4
+    puts "Usage: ruby #{__FILE__} <title> <author> <target_dir> [cover_image_path]"
     exit 1
   end
-
-  service = EpubInitializer.new(ARGV[0], ARGV[1], ARGV[2])
+  if ARGV.size == 4
+    service = EpubInitializer.new(ARGV[0], ARGV[1], ARGV[2], ARGV[3])
+  else
+    service = EpubInitializer.new(ARGV[0], ARGV[1], ARGV[2])
+  end
   service.run
 end
