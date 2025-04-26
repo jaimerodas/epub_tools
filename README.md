@@ -2,8 +2,13 @@
 
 **TL;DR:** A collection of scripts to extract, split, and compile EPUBs from multiple source EPUB files containing collections of chapters. Use these tools to build a single consolidated EPUB book.
 
- ## Prerequisites
-Developed using Ruby 3.4.3, but earlier versions will probably work.
+## Prerequisites
+Developed using Ruby 3.4.3. Ensure you have the correct Ruby version installed:
+
+```bash
+rbenv install 3.4.3
+rbenv local 3.4.3
+```
 
  Install required gems:
  ```bash
