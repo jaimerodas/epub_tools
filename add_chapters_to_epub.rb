@@ -75,6 +75,7 @@ class AddChaptersToEpub
     filenames.each do |filename|
       # Create a new <li><a href="...">Label</a></li> element
       label = File.basename(filename, '.xhtml').gsub('_', ' ').capitalize
+      label = "Prologue" if label == "Chapter 0"
       li = Nokogiri::XML::Node.new('li', doc)
       a  = Nokogiri::XML::Node.new('a', doc)
       a['href'] = filename
