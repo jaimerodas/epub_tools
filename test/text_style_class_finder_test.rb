@@ -27,4 +27,14 @@ class TextStyleClassFinderTest < Minitest::Test
     assert_equal ['c1'], data['italics']
     assert_equal ['c2'], data['bolds']
   end
+
+  def test_verbose_mode
+    text = <<~OUTPUT
+    Classes with font-style: italic: c1
+    Classes with font-weight: 700: c2
+    OUTPUT
+    assert_output(text) do
+      TextStyleClassFinder.new(@xhtml, @yaml, true).call
+    end
+  end
 end

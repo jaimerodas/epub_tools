@@ -1,7 +1,7 @@
 require 'optparse'
 
 # A simple helper to DRY CLI OptionParser usage across scripts
-module CLIHelper
+class CLIHelper
   # Parses ARGV into options hash, enforces required keys, and displays help/errors.
   # options: hash of defaults; required_keys: array of symbols required
   def self.parse(options = {}, required_keys = [], &block)
@@ -11,6 +11,7 @@ module CLIHelper
     end
     begin
       parser.parse!
+      puts options
       unless required_keys.empty?
         missing = required_keys.select { |k| options[k].nil? }
         unless missing.empty?

@@ -3,24 +3,19 @@ require 'nokogiri'
 require 'fileutils'
 
 class AddChaptersToEpub
-  def initialize(chapters_dir = './chapters', epub_dir = './epub/OEBPS')
+  def initialize(chapters_dir = './chapters', epub_dir = './epub/OEBPS', verbose = false)
     @chapters_dir = chapters_dir
     @epub_dir = epub_dir
     @opf_file = File.join(@epub_dir, 'package.opf')
     @nav_file = File.join(@epub_dir, 'nav.xhtml')
+    @verbose = verbose
   end
 
   def run
-    puts "Moving chapter files..."
     moved_files = move_chapters
-
-    puts "Updating package.opf..."
     update_package_opf(moved_files)
-
-    puts "Updating nav.xhtml..."
     update_nav_xhtml(moved_files)
-
-    puts "All done! #{moved_files.size} chapters added."
+    @verbose ? moved_files.each {|f| puts "Moved: #{f}"} : moved_files
   end
 
   private
@@ -91,13 +86,14 @@ end
 
 if __FILE__ == $0
   require_relative 'cli_helper'
-  options = { chapters_dir: './chapters', epub_dir: './epub/OEBPS' }
+  options = { verbose: true }
 
-  CLIParser.parse(options, [:chapters_dir, :epub_dir]) do |opts, o|
+  CLIHelper.parse(options, [:chapters_dir, :epub_dir]) do |opts, o|
     opts.banner = "Usage: #{File.basename($PROGRAM_NAME)} [options]"
-    opts.on('-c DIR', '--chapters DIR', "Directory containing chapter XHTML files (default: #{options[:chapters_dir]})") { |v| options[:chapters_dir] = v }
-    opts.on('-e DIR', '--epub-dir DIR', "OEBPS directory of EPUB to add chapters to (default: #{options[:epub_dir]})") { |v| options[:epub_dir] = v }
+    opts.on('-c DIR', '--chapters DIR', "Directory containing chapter XHTML files (required)") { |v| options[:chapters_dir] = v }
+    opts.on('-e DIR', '--epub-dir DIR', "OEBPS directory of EPUB to add chapters to (required)") { |v| options[:epub_dir] = v }
+    opts.on('-q', '--quiet', 'Run quietly (default: false)') { |v| options[:verbose] = !v }
   end
 
-  AddChaptersToEpub.new(options[:chapters_dir], options[:epub_dir]).run
+  AddChaptersToEpub.new(options[:chapters_dir], options[:epub_dir], options[:verbose]).run
 end
