@@ -10,6 +10,7 @@ Gem::Specification.new do |spec|
   spec.files         = `git ls-files`.split("\n")
   spec.require_paths = ['lib']
   spec.executables   = ['epub-tools']
+  spec.required_ruby_version = ">= 3.0"
 
   spec.add_dependency 'nokogiri', '~> 1.18'
   spec.add_dependency 'rubyzip', '~> 2.4'

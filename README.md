@@ -29,6 +29,7 @@ Commands:
 - `add`       Add chapter XHTML files into an existing EPUB
 - `pack`      Package an EPUB directory into a `.epub` file
 - `unpack`    Unpack a `.epub` file into a directory
+- `compile`   Takes EPUBs in a dir and splits, cleans, and compiles into a single EPUB
 
 Run `epub-tools COMMAND --help` for details on options.
 
@@ -51,6 +52,9 @@ epub-tools pack -i epub_dir -o MyBook.epub
 
 # Unpack EPUB
 epub-tools unpack -i MyBook.epub -o unpacked_dir
+  
+# Full compile workflow: extract, split, initialize, add, and pack into one EPUB
+epub-tools compile -t "My Book" -a "Author Name" -s source_epubs -c cover.jpg -o MyBook.epub
 ```
 
  (Legacy script references removed; see CLI Usage above)
