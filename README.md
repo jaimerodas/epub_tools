@@ -1,84 +1,114 @@
  # EPUB Tools
 
-**TL;DR:** A collection of scripts to extract, split, and compile EPUBs from multiple source EPUB files containing collections of chapters. Use these tools to build a single consolidated EPUB book.
+ **TL;DR:** A Ruby gem and CLI for working with EPUB files: extract, split, initialize, add chapters, pack, and unpack EPUB books.
 
-## Prerequisites
-Developed using Ruby 3.4.3. Ensure you have the correct Ruby version installed:
-
+## Installation
+Install the gem via RubyGems:
 ```bash
-rbenv install 3.4.3
-rbenv local 3.4.3
+gem install epub_tools
 ```
 
- Install required gems:
- ```bash
- bundle install
- ```
-
- ## Files
-
-### xhtml_extractor.rb
-Extracts all `.xhtml` files (excluding `nav.xhtml`) from one or more `.epub` files in a source directory into a target directory.
-Usage:
+Or build and install locally:
 ```bash
-ruby xhtml_extractor.rb <source_epub_dir> <target_xhtml_dir>
+bundle install
+gem build epub_tools.gemspec
+gem install ./epub_tools-*.gem
 ```
 
-### split_chapters.rb
-Splits a single XHTML file into individual chapter files based on chapter or prologue markers. Uses `text_style_class_finder.rb` and `xhtml_cleaner.rb` internally.
-Usage:
-```bash
-ruby split_chapters.rb <input.xhtml> "Book Title" [output_dir] [prefix]
-```
-
-### text_style_class_finder.rb
-Helper script that scans an XHTML document for text style class definitions (used by `split_chapters.rb`). Had to do this as the EPUB files I'm working with come from GoogleDocs and that generates inline styling and weird classes.
-
-### xhtml_cleaner.rb
-Cleans up and formats an XHTML file for consistency (used by `split_chapters.rb`).
-
-### add_chapters_to_epub.rb
-Moves chapter `.xhtml` files into an EPUB's `OEBPS` directory, updates `package.opf` manifest & spine, and inserts entries into `nav.xhtml`.
-Usage:
-```bash
-ruby add_chapters_to_epub.rb <chapters_dir> <epub_oebps_dir>
-```
-
-### epub_initializer.rb
-Initializes a basic EPUB directory structure (`META-INF`, `OEBPS`), creates `mimetype`, `container.xml`, `package.opf`, `nav.xhtml`, `title.xhtml`, and copies `style.css`.
-Usage:
-```bash
-ruby epub_initializer.rb "Book Title" "Author Name" <output_epub_dir> <cover_image_path>
-```
-
-### make_epub.sh
-Zips up an EPUB directory into a `.epub` file, ensuring `mimetype` is uncompressed and first.
-Usage:
-```bash
-./make_epub.sh <epub_folder> [output.epub]
-```
-
-### compile_book.sh
-High-level script that orchestrates the full flow: extraction, splitting, initialization, adding chapters, and final packaging.
-Usage:
-```bash
-./compile_book.sh "Book Title" "Author Name" <source_epubs_dir> [output.epub] [cover_image.jpg]
-```
-
-### style.css
-Default CSS file applied to all XHTML content.
-
- ## Example
-
- ```bash
- ./compile_book.sh "My Novel" "Jane Doe" ./source_epubs My_Novel.epub
- ```
-
- This will produce `My_Novel.epub` in the current directory.
-
-## Testing
-you have the required gems (nokogiri and rubyzip), then:
+## CLI Usage
+After installation, use the `epub-tools` executable:
 
 ```bash
-rake test
+Usage: epub-tools COMMAND [options]
 ```
+
+Commands:
+- `init`      Initialize a new EPUB directory structure
+- `extract`   Extract XHTML files from EPUB archives
+- `split`     Split an XHTML file into separate chapter files
+- `add`       Add chapter XHTML files into an existing EPUB
+- `pack`      Package an EPUB directory into a `.epub` file
+- `unpack`    Unpack a `.epub` file into a directory
+
+Run `epub-tools COMMAND --help` for details on options.
+
+### Example
+```bash
+# Extract XHTMLs
+epub-tools extract -s source_epubs -t xhtml_output
+
+# Split chapters
+epub-tools split -i xhtml_output/chapter1.xhtml -t "My Book" -o chapters
+
+# Initialize EPUB
+epub-tools init -t "My Book" -a "Author Name" -o epub_dir -c cover.jpg
+
+# Add chapters to EPUB
+epub-tools add -c chapters -e epub_dir/OEBPS
+
+# Package EPUB (Ruby)
+epub-tools pack -i epub_dir -o MyBook.epub
+
+# Unpack EPUB
+epub-tools unpack -i MyBook.epub -o unpacked_dir
+```
+
+ (Legacy script references removed; see CLI Usage above)
+
+## Library Usage
+Use the library directly in Ruby:
+```ruby
+require 'epub_tools'
+
+# Extract XHTML
+EpubTools::XHTMLExtractor.new(
+  source_dir: 'source_epubs',
+  target_dir: 'xhtml_output',
+  verbose: true
+).extract_all
+
+# Split chapters
+EpubTools::SplitChapters.new(
+  'xhtml_output/chapter1.xhtml',
+  'My Book',
+  'chapters',
+  'chapter'
+).run
+
+# Initialize EPUB
+EpubTools::EpubInitializer.new(
+  'My Book',
+  'Author Name',
+  'epub_dir',
+  'cover.jpg'
+).run
+
+# Add chapters
+EpubTools::AddChaptersToEpub.new('chapters', 'epub_dir/OEBPS').run
+
+# Pack EPUB
+EpubTools::PackEbook.new('epub_dir', 'MyBook.epub').run
+
+# Unpack EPUB
+EpubTools::UnpackEbook.new('MyBook.epub', 'unpacked_dir').run
+```
+## Development & Testing
+Clone the repo and install dependencies:
+```bash
+git clone <repo-url>
+cd epub_tools
+bundle install
+```
+
+Run tests:
+```bash
+bundle exec rake test
+```
+
+Enable coverage reporting:
+```bash
+COVERAGE=true bundle exec rake test
+```
+
+## Contributing
+Pull requests welcome! Please open an issue for major changes.
