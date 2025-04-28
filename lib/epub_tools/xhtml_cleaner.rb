@@ -23,10 +23,7 @@ module EpubTools
     private
 
     def read_and_strip_problematic_hr
-      content = File.read(@filename)
-      content.gsub!(/<hr\b[^>]*\/?>/i, '')
-      content.gsub!(/<br\b[^>]*\/?>/i, '')
-      content
+      File.read(@filename).gsub(/<hr\b[^>]*\/?>/i, '').gsub(/<br\b[^>]*\/?>/i, '')
     end
 
     def parse_xml(content)

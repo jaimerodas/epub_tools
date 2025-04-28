@@ -36,10 +36,7 @@ module EpubTools
     private
 
     def read_and_strip_problematic_hr
-      content = File.read(@input_file)
-      content.gsub!(/<hr\b[^>]*\/?>/i, '')
-      content.gsub!(/<br\b[^>]*\/?>/i, '')
-      content
+      File.read(@input_file).gsub(/<hr\b[^>]*\/?>/i, '').gsub(/<br\b[^>]*\/?>/i, '')
     end
 
     def extract_chapters(doc)
@@ -89,7 +86,7 @@ module EpubTools
           </body>
         </html>
       HTML
-      # XHTMLCleaner.new(filename).call
+      XHTMLCleaner.new(filename).call
       puts "Extracted: #{filename}" if @verbose
     end
 
