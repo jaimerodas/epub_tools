@@ -1,6 +1,6 @@
-require_relative 'test_helper'
 require 'yaml'
-require_relative '../text_style_class_finder'
+require_relative 'test_helper'
+require_relative '../lib/epub_tools/text_style_class_finder'
 
 class TextStyleClassFinderTest < Minitest::Test
   def setup
@@ -22,7 +22,7 @@ class TextStyleClassFinderTest < Minitest::Test
   end
 
   def test_finds_italic_and_bold_classes
-    TextStyleClassFinder.new(@xhtml, @yaml).call
+    EpubTools::TextStyleClassFinder.new(@xhtml, @yaml).call
     data = YAML.load_file(@yaml)
     assert_equal ['c1'], data['italics']
     assert_equal ['c2'], data['bolds']
@@ -34,7 +34,7 @@ class TextStyleClassFinderTest < Minitest::Test
     Classes with font-weight: 700: c2
     OUTPUT
     assert_output(text) do
-      TextStyleClassFinder.new(@xhtml, @yaml, true).call
+      EpubTools::TextStyleClassFinder.new(@xhtml, @yaml, verbose: true).call
     end
   end
 end

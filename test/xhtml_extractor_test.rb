@@ -1,6 +1,6 @@
 require_relative 'test_helper'
 require 'zip'
-require_relative '../xhtml_extractor'
+require_relative '../lib/epub_tools/xhtml_extractor'
 
 class XHTMLExtractorTest < Minitest::Test
   def setup
@@ -14,7 +14,7 @@ class XHTMLExtractorTest < Minitest::Test
       zip.get_output_stream('nav.xhtml') { |f| f.write '<html><body>Nav</body></html>' }
       zip.get_output_stream('folder/ch2.xhtml') { |f| f.write '<html><body><p>Two</p></body></html>' }
     end
-    @extractor = XHTMLExtractor.new(source_dir: @src, target_dir: @tgt)
+    @extractor = EpubTools::XHTMLExtractor.new(source_dir: @src, target_dir: @tgt)
   end
 
   def teardown

@@ -1,5 +1,5 @@
 require_relative 'test_helper'
-require_relative '../split_chapters'
+require_relative '../lib/epub_tools/split_chapters'
 
 class SplitChaptersTest < Minitest::Test
   def setup
@@ -27,7 +27,7 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def test_run_generates_chapter_files
-    SplitChapters.new(@input, 'BookTitle', @out, 'chap').run
+    EpubTools::SplitChapters.new(@input, 'BookTitle', @out, 'chap').run
     files = Dir.children(@out)
     assert_includes files, 'chap_0.xhtml'
     assert_includes files, 'chap_1.xhtml'

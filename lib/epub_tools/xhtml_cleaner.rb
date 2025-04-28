@@ -1,0 +1,78 @@
+#!/usr/bin/env ruby
+
+require 'nokogiri'
+require 'yaml'
+
+module EpubTools
+  class XHTMLCleaner
+    def initialize(filename, class_config = 'text_style_classes.yaml')
+      @filename = filename
+      @classes = YAML.load_file(class_config).transform_keys(&:to_sym)
+    end
+
+    def call
+      raw_content = read_and_strip_problematic_hr
+      doc = parse_xml(raw_content)
+      remove_empty_paragraphs(doc)
+      remove_bold_spans(doc)
+      replace_italic_spans(doc)
+      unwrap_remaining_spans(doc)
+      write_pretty_output(doc)
+    end
+
+    private
+
+    def read_and_strip_problematic_hr
+      content = File.read(@filename)
+      content.gsub!(/<hr\b[^>]*\/?>/i, '')
+      content.gsub!(/<br\b[^>]*\/?>/i, '')
+      content
+    end
+
+    def parse_xml(content)
+      Nokogiri::XML(content) { |config| config.default_xml.noblanks }
+    rescue => e
+      abort "Error parsing XML: #{e.message}"
+    end
+
+    def remove_empty_paragraphs(doc)
+      doc.css('p').each do |p|
+        content = p.inner_html.strip
+        if content.empty? || content =~ /\A(<span[^>]*>\s*<\/span>\s*)+\z/
+          p.remove
+        else
+          p.remove_attribute('class')
+        end
+      end
+    end
+
+    def remove_bold_spans(doc)
+      @classes[:bolds].each do |class_name|
+        doc.css("span.#{class_name}").each do |node|
+          node.parent.remove
+        end
+      end
+    end
+
+    def replace_italic_spans(doc)
+      @classes[:italics].each do |class_name|
+        doc.css("span.#{class_name}").each do |node|
+          node.name = "i"
+          node.remove_attribute('class')
+        end
+      end
+    end
+
+    def unwrap_remaining_spans(doc)
+      doc.css("span").each do |span|
+        span.add_next_sibling(span.dup.content)
+        span.remove
+      end
+    end
+
+    def write_pretty_output(doc)
+      formatted_xml = doc.to_xml(indent: 2)
+      File.write(@filename, formatted_xml)
+    end
+  end
+end

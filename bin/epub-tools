@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+require_relative '../lib/epub_tools'
+
+prog = File.basename($PROGRAM_NAME)
+script_dir = File.expand_path(File.join(__dir__, '..'))
+commands = %w[add extract init split pack unpack]
+
+if ARGV.empty? || !commands.include?(ARGV[0])
+  puts <<~USAGE
+    Usage: #{prog} COMMAND [options]
+    Commands:
+      init      Initialize a bare-bones EPUB
+      extract   Extract XHTML files from EPUBs
+      split     Split XHTML into separate XHTMLs per chapter
+      add       Add chapter XHTML files into an EPUB
+      pack      Package an EPUB directory into a .epub file
+      unpack    Unpack an EPUB file into a directory
+  USAGE
+  exit 1
+end
+
+cmd = ARGV.shift
+
+case cmd
+when 'add'
+options = {}
+EpubTools::CLIHelper.parse(options, [:chapters_dir, :epub_oebps_dir]) do |opts, o|
+  opts.banner = "Usage: #{prog} add [options]"
+  opts.on('-c DIR', '--chapters-dir DIR', 'Chapters directory (required)') { |v| o[:chapters_dir] = v }
+  opts.on('-e DIR', '--epub-oebps-dir DIR', 'EPUB OEBPS directory (required)') { |v| o[:epub_oebps_dir] = v }
+end
+
+EpubTools::AddChaptersToEpub.new(options[:chapters_dir], options[:epub_oebps_dir]).run
+
+when 'extract'
+  options = { verbose: true }
+  EpubTools::CLIHelper.parse(options, [:source_dir, :target_dir]) do |opts, o|
+    opts.banner = "Usage: #{prog} extract [options]"
+    opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') { |v| o[:source_dir] = v }
+    opts.on('-t DIR', '--target-dir DIR', 'Directory where the XHTML files will be extracted to (required)') { |v| o[:target_dir] = v }
+    opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
+  end
+  EpubTools::XHTMLExtractor.new(
+    source_dir: options[:source_dir],
+    target_dir: options[:target_dir],
+    verbose: options[:verbose]
+  ).extract_all
+
+when 'split'
+  options = { output_dir: './chapters', prefix: 'chapter', verbose: true }
+  EpubTools::CLIHelper.parse(options, [:input_file, :book_title]) do |opts, o|
+    opts.banner = "Usage: #{prog} split [options]"
+    opts.on('-i FILE', '--input FILE', 'Source XHTML file (required)') { |v| options[:input_file] = v }
+    opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') { |v| options[:book_title] = v }
+    opts.on('-o DIR', '--output-dir DIR', "Output directory for chapter files (default: #{options[:output_dir]})") { |v| options[:output_dir] = v }
+    opts.on('-p PREFIX', '--prefix PREFIX', "Filename prefix for chapters (default: #{options[:prefix]})") { |v| options[:prefix] = v }
+    opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
+  end
+  EpubTools::SplitChapters.new(options[:input_file], options[:book_title], options[:output_dir], options[:prefix], options[:verbose]).run
+
+when 'init'
+  options = {}
+  EpubTools::CLIHelper.parse(options, [:title, :author, :destination]) do |opts, o|
+    opts.banner = "Usage: #{prog} init [options]"
+    opts.on('-t TITLE', '--title TITLE', 'Book title (required)') { |v| o[:title] = v }
+    opts.on('-a AUTHOR', '--author AUTHOR', 'Author name (required)') { |v| o[:author] = v }
+    opts.on('-o DIR', '--output-dir DIR', 'Destination EPUB directory (required)') { |v| o[:destination] = v }
+    opts.on('-c PATH', '--cover PATH', 'Cover image file path (optional)') { |v| o[:cover_image] = v }
+  end
+
+  EpubTools::EpubInitializer.new(options[:title], options[:author], options[:destination], options[:cover_image]).run
+
+when 'pack'
+  options = {verbose: true}
+  EpubTools::CLIHelper.parse(options, [:input_dir, :output_file]) do |opts, o|
+    opts.banner = "Usage: #{prog} pack [options]"
+    opts.on('-i DIR', '--input-dir DIR', 'EPUB directory to package (required)') { |v| o[:input_dir] = v }
+    opts.on('-o FILE', '--output-file FILE', 'Output EPUB file path (required)') { |v| o[:output_file] = v }
+    opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
+  end
+
+  EpubTools::PackEbook.new(options[:input_dir], options[:output_file], verbose: options[:verbose]).run
+
+when 'unpack'
+  options = {verbose: true}
+  EpubTools::CLIHelper.parse(options, [:epub_file]) do |opts, o|
+    opts.banner = "Usage: #{prog} unpack [options]"
+    opts.on('-i FILE', '--input-file FILE', 'EPUB file to unpack (required)') { |v| o[:epub_file] = v }
+    opts.on('-o DIR', '--output-dir DIR', 'Output directory to extract into (default: basename of epub)') { |v| o[:output_dir] = v }
+    opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
+  end
+  EpubTools::UnpackEbook.new(options[:epub_file], verbose: options[:verbose]).run
+end

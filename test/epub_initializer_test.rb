@@ -1,5 +1,5 @@
 require_relative 'test_helper'
-require_relative '../epub_initializer'
+require_relative '../lib/epub_tools/epub_initializer'
 
 class EpubInitializerTest < Minitest::Test
   def setup
@@ -14,7 +14,7 @@ class EpubInitializerTest < Minitest::Test
   end
 
   def test_run_creates_basic_structure
-    EpubInitializer.new(@title, @author, @dest).run
+    EpubTools::EpubInitializer.new(@title, @author, @dest).run
     # Check directories
     assert Dir.exist?(@dest)
     assert File.directory?(File.join(@dest, 'META-INF'))
@@ -43,7 +43,7 @@ class EpubInitializerTest < Minitest::Test
     # create dummy image
     cover = File.join(@tmp, 'cover.png')
     File.write(cover, 'PNGDATA')
-    EpubInitializer.new(@title, @author, @dest, cover).run
+    EpubTools::EpubInitializer.new(@title, @author, @dest, cover).run
     # Check cover file and page
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.png'))
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.xhtml'))

@@ -1,6 +1,6 @@
-require_relative 'test_helper'
 require 'yaml'
-require_relative '../xhtml_cleaner'
+require_relative 'test_helper'
+require_relative '../lib/epub_tools/xhtml_cleaner'
 
 class XHTMLCleanerTest < Minitest::Test
   def setup
@@ -28,7 +28,7 @@ class XHTMLCleanerTest < Minitest::Test
   end
 
   def test_cleaner_removes_and_transforms_tags
-    XHTMLCleaner.new(@file, @config).call
+    EpubTools::XHTMLCleaner.new(@file, @config).call
     result = File.read(@file)
     assert_includes result, '<i>ItalicsOnly</i>'
     assert_includes result, 'KeepThis'

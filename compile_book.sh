@@ -44,13 +44,13 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$XHTML_DIR" "$CHAPTERS_DIR"
 
 echo "Extracting XHTML files from epubs in '$SOURCE_DIR'..."
-ruby "$SCRIPT_DIR/xhtml_extractor.rb" "$SOURCE_DIR" "$XHTML_DIR"
+"$SCRIPT_DIR/bin/epub-tools" extract -s "$SOURCE_DIR" -t "$XHTML_DIR"
 
 echo "Splitting XHTML files into chapters..."
 for xhtml_file in "$XHTML_DIR"/*.xhtml; do
   base="$(basename "$xhtml_file" .xhtml)"
   echo "Splitting '$base'..."
-  ruby "$SCRIPT_DIR/split_chapters.rb" "$xhtml_file" "$TITLE" "$CHAPTERS_DIR"
+  "$SCRIPT_DIR/bin/epub-tools" split -i "$xhtml_file" -t "$TITLE" -o "$CHAPTERS_DIR"
 done
 
 # Validate contiguous chapter numbers
@@ -86,16 +86,16 @@ fi
 
 echo "Initializing new EPUB..."
 if [[ -n "$COVER_IMAGE" ]]; then
-  ruby "$SCRIPT_DIR/epub_initializer.rb" "$TITLE" "$AUTHOR" "$EPUB_DIR" "$COVER_IMAGE"
+  "$SCRIPT_DIR/bin/epub-tools" init -t "$TITLE" -a "$AUTHOR" -o "$EPUB_DIR" -c "$COVER_IMAGE"
 else
-  ruby "$SCRIPT_DIR/epub_initializer.rb" "$TITLE" "$AUTHOR" "$EPUB_DIR"
+  "$SCRIPT_DIR/bin/epub-tools" init -t "$TITLE" -a "$AUTHOR" -o "$EPUB_DIR"
 fi
 
 echo "Adding chapters to EPUB..."
-ruby "$SCRIPT_DIR/add_chapters_to_epub.rb" "$CHAPTERS_DIR" "$EPUB_DIR/OEBPS"
+"$SCRIPT_DIR/bin/epub-tools" add -c "$CHAPTERS_DIR" -e "$EPUB_DIR/OEBPS"
 
 echo "Building final EPUB '$OUTPUT_FILE'..."
-"$SCRIPT_DIR"/make_epub.sh "$EPUB_DIR" "../$OUTPUT_FILE"
+"$SCRIPT_DIR/bin/epub-tools" pack -i "$EPUB_DIR" -o "../$OUTPUT_FILE"
 
 echo "Done. Output EPUB: $(pwd)/$OUTPUT_FILE"
 
