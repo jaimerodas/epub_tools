@@ -6,6 +6,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Tools to extract, split, and compile EPUB books'
   spec.authors       = ['Jaime Rodas']
   spec.email         = ['rodas@hey.com']
+  spec.homepage      = 'https://rubygems.org/gems/epub_tools'
   spec.license       = 'MIT'
   spec.files         = `git ls-files`.split("\n")
   spec.require_paths = ['lib']
