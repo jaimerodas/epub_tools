@@ -1,7 +1,10 @@
 #!/usr/bin/env ruby
 require 'fileutils'
-$LOAD_PATH.unshift File.expand_path('../../', __FILE__)
-require 'epub_tools'
+require_relative 'xhtml_extractor'
+require_relative 'split_chapters'
+require_relative 'epub_initializer'
+require_relative 'add_chapters_to_epub'
+require_relative 'pack_ebook'
 
 module EpubTools
   # Orchestrates extraction, splitting, validation, and packaging of book EPUBs
