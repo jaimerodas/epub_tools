@@ -90,7 +90,7 @@ EpubTools::EpubInitializer.new(
 ).run
 
 # Add chapters
-EpubTools::AddChaptersToEpub.new('chapters', 'epub_dir/OEBPS').run
+EpubTools::AddChapters.new('chapters', 'epub_dir/OEBPS').run
 
 # Pack EPUB
 EpubTools::PackEbook.new('epub_dir', 'MyBook.epub').run

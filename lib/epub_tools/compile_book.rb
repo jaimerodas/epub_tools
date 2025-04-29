@@ -3,7 +3,7 @@ require 'fileutils'
 require_relative 'xhtml_extractor'
 require_relative 'split_chapters'
 require_relative 'epub_initializer'
-require_relative 'add_chapters_to_epub'
+require_relative 'add_chapters'
 require_relative 'pack_ebook'
 
 module EpubTools
@@ -113,7 +113,7 @@ module EpubTools
 
     def add_chapters
       log "Adding chapters to EPUB..."
-      AddChaptersToEpub.new(chapters_dir, File.join(epub_dir, 'OEBPS'), verbose).run
+      AddChapters.new(chapters_dir, File.join(epub_dir, 'OEBPS'), verbose).run
     end
 
     def pack_epub

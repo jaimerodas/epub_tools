@@ -3,7 +3,13 @@ require 'nokogiri'
 require 'fileutils'
 
 module EpubTools
-  class AddChaptersToEpub
+  # Moves new chapters into an unpacked EPUB
+  class AddChapters
+    # Arguments:
+    # - *chapters_dir*: Directory from which to move the chapters
+    # - *epub_dir*: Unpacked EPUB directory to move the chapters to. It should be the same
+    #   directory that contains the *package.opf* and *nav.xhtml* files.
+    # - *verbose*: Whether to log progress to $stdout or not
     def initialize(chapters_dir = './chapters', epub_dir = './epub/OEBPS', verbose = false)
       @chapters_dir = chapters_dir
       @epub_dir = epub_dir
@@ -12,6 +18,13 @@ module EpubTools
       @verbose = verbose
     end
 
+    # It works like this:
+    # - First we move the *.xhtml files from *chapters_dir* over to *epub_dir*
+    # - Then it will add new entries to the manifest and spine of the EPUB's package.opf file. It
+    #   will sort the files by extracting the chapter number (it assumes the *.xhtml files are named
+    #   like chapter_42.xhtml)
+    # - Finally, it will update the *nav.xhtml* file with the new chapters. Note that a file named
+    #   chapter_0.xhtml will be added to the *nav.xhtml* as the Prologue
     def run
       moved_files = move_chapters
       update_package_opf(moved_files)

@@ -36,7 +36,7 @@ EpubTools::CLIHelper.parse(options, [:chapters_dir, :epub_oebps_dir]) do |opts, 
   opts.on('-e DIR', '--epub-oebps-dir DIR', 'EPUB OEBPS directory (required)') { |v| o[:epub_oebps_dir] = v }
 end
 
-EpubTools::AddChaptersToEpub.new(options[:chapters_dir], options[:epub_oebps_dir]).run
+EpubTools::AddChapters.new(options[:chapters_dir], options[:epub_oebps_dir]).run
 
 when 'extract'
   options = { verbose: true }

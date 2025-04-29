@@ -1,8 +1,8 @@
 require_relative 'test_helper'
-require_relative '../lib/epub_tools/add_chapters_to_epub'
+require_relative '../lib/epub_tools/add_chapters'
 require 'nokogiri'
 
-class AddChaptersToEpubTest < Minitest::Test
+class AddChaptersTest < Minitest::Test
   def setup
     @tmp = Dir.mktmpdir
     # Directories for chapters and EPUB OEBPS
@@ -54,7 +54,7 @@ class AddChaptersToEpubTest < Minitest::Test
 
   def test_run_moves_files_and_updates_opf_and_nav
     # Run the add chapters task
-    EpubTools::AddChaptersToEpub.new(@chapters_dir, @epub_dir).run
+    EpubTools::AddChapters.new(@chapters_dir, @epub_dir).run
 
     # Original chapter files should be moved
     assert_empty Dir.glob(File.join(@chapters_dir, '*.xhtml'))
