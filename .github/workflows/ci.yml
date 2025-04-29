@@ -2,20 +2,21 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: [ main ]
   pull_request:
-    branches: ["main"]
+    branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ['3.2', '3.3', '3.4']
     steps:
       - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.3'
-          bundler-cache: true
-      - name: Install dependencies
-        run: bundle install --jobs 4 --retry 3
-      - name: Run tests
-        run: bundle exec rake test
+          ruby-version: ${{ matrix.ruby }}
+      - run: gem install bundler
+      - run: bundle install --jobs 4 --retry 3
+      - run: bundle exec rake test

@@ -1,8 +1,8 @@
  # EPUB Tools
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Build Status](https://github.com/jaimerodas/epub_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jaimerodas/epub_tools/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
- **TL;DR:** A Ruby gem and CLI for working with EPUB files: extract, split, initialize, add chapters, pack, and unpack EPUB books.
+**TL;DR:** A Ruby gem and CLI for working with EPUB files: extract, split, initialize, add chapters, pack, and unpack EPUB books.
 
 ## Installation
 Install the gem via RubyGems:
