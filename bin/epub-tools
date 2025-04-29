@@ -90,7 +90,7 @@ when 'unpack'
     opts.on('-o DIR', '--output-dir DIR', 'Output directory to extract into (default: basename of epub)') { |v| o[:output_dir] = v }
     opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
   end
-  EpubTools::UnpackEbook.new(options[:epub_file], verbose: options[:verbose]).run
+  EpubTools::UnpackEbook.new(options[:epub_file], options[:output_dir], verbose: options[:verbose]).run
 
 when 'compile'
   options = {verbose: true}
@@ -103,5 +103,5 @@ when 'compile'
     opts.on('-c PATH', '--cover PATH', 'Cover image file path (optional)') { |v| o[:cover_image] = v }
     opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
   end
-  EpubTools::CompileBook.new(*options).run
+  EpubTools::CompileBook.new(**options).run
 end

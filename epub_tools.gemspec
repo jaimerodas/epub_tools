@@ -6,12 +6,16 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Tools to extract, split, and compile EPUB books'
   spec.authors       = ['Jaime Rodas']
   spec.email         = ['rodas@hey.com']
-  spec.homepage      = 'https://rubygems.org/gems/epub_tools'
+  spec.homepage      = 'https://github.com/jaimerodas/epub_tools'
   spec.license       = 'MIT'
   spec.files         = `git ls-files`.split("\n")
   spec.require_paths = ['lib']
   spec.executables   = ['epub-tools']
   spec.required_ruby_version = ">= 3.0"
+  spec.metadata    = {
+    "source_code_uri" => "https://github.com/jaimerodas/epub_tools/tree/main",
+    "homepage_uri" => "https://github.com/jaimerodas/epub_tools"
+  }
 
   spec.add_dependency 'nokogiri', '~> 1.18'
   spec.add_dependency 'rubyzip', '~> 2.4'

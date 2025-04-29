@@ -7,6 +7,7 @@ require_relative 'epub_tools/xhtml_cleaner'
 require_relative 'epub_tools/xhtml_extractor'
 require_relative 'epub_tools/pack_ebook'
 require_relative 'epub_tools/unpack_ebook'
+require_relative 'epub_tools/compile_book'
 
 module EpubTools
 end
