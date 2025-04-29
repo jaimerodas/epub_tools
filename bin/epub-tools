@@ -2,6 +2,11 @@
 require_relative '../lib/epub_tools'
 
 prog = File.basename($PROGRAM_NAME)
+# Global version flag: print version and exit if invoked as `epub-tools -v/--version`
+if ARGV[0] == '-v' || ARGV[0] == '--version'
+  puts EpubTools::VERSION
+  exit 0
+end
 script_dir = File.expand_path(File.join(__dir__, '..'))
 commands = %w[add extract init split pack unpack compile]
 
