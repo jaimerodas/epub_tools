@@ -5,8 +5,8 @@ require 'pathname'
 module EpubTools
   # Packages an EPUB directory into a .epub file
   class PackEbook
-    # input_dir: path to the EPUB directory (containing mimetype, META-INF, OEBPS)
-    # output_file: path to resulting .epub file; if nil, defaults to <input_dir>.epub
+    # [input_dir] Path to the EPUB directory (containing mimetype, META-INF, OEBPS)
+    # [output_file] Path to resulting .epub file; if +nil+, defaults to <tt><input_dir>.epub</tt>
     def initialize(input_dir, output_file = nil, verbose: false)
       @input_dir = File.expand_path(input_dir)
       default_name = "#{File.basename(@input_dir)}.epub"
@@ -18,7 +18,7 @@ module EpubTools
       @verbose = verbose
     end
 
-    # Run the packaging process
+    # Runs the packaging process and returns the resulting file path
     def run
       validate_input!
       Dir.chdir(@input_dir) do
@@ -38,6 +38,7 @@ module EpubTools
         end
       end
       puts "EPUB created: #{@output_file}" if @verbose
+      @output_file
     end
 
     private

@@ -115,6 +115,22 @@ Enable coverage reporting:
 ```bash
 COVERAGE=true bundle exec rake test
 ```
+## Documentation
+
+Detailed API documentation can be generated using YARD. To view the docs locally, serve the documentation locally with YARD:
+
+```bash
+bundle exec yard server --reload
+```
+
+Then navigate to http://localhost:8808 in your browser.
+
+To (re)generate the documentation, install the documentation dependencies and run:
+
+```bash
+bundle install --with doc
+bundle exec yard doc
+```
 
 ## Contributing
 Pull requests welcome! Please open an issue for major changes.

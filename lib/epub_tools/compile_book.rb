@@ -9,11 +9,22 @@ require_relative 'pack_ebook'
 module EpubTools
   # Orchestrates extraction, splitting, validation, and packaging of book EPUBs
   class CompileBook
-    attr_reader :title, :author, :source_dir, :cover_image, :output_file, :build_dir, :verbose
+    # Book title
+    attr_reader :title
+    # Book author
+    attr_reader :author
+    # Path of the input epubs
+    attr_reader :source_dir
+    # Optional path to the cover image
+    attr_reader :cover_image
+    # Filename for the final epub
+    attr_reader :output_file
+    # Optional working directory for intermediate files
+    attr_reader :build_dir
+    # Whether to print progress to STDOUT
+    attr_reader :verbose
 
-    # title: String, author: String, source_dir: path to input epubs
-    # cover_image: optional path to cover image, output_file: filename for final epub
-    # build_dir: optional working directory for intermediate files
+    # Initializes the class
     def initialize(title:, author:, source_dir:, cover_image: nil, output_file: nil, build_dir: nil, verbose: false)
       @title       = title
       @author      = author

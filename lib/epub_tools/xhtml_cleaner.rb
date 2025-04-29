@@ -4,12 +4,28 @@ require 'nokogiri'
 require 'yaml'
 
 module EpubTools
+  # Cleans Google Docs XHTMLs
+
+  # Google Docs makes a mess out of EPUBs and creates html without proper tag names and just uses
+  # classes for _everything_. This class does the following to clean invalid xhtml:
+  #
+  # - Removes any <tt><br /></tt> or <tt><hr /></tt> tags.
+  # - Removes empty <tt><p></tt> tags.
+  # - Using the +class_config+, it removes <tt><span></tt> tags that are used for bold or italics and
+  #   replaces them with <tt><b></tt> or <tt><i></tt> tags.
+  # - Unwraps any <tt><span></tt> tags that have no classes assigned.
+  # - Outputs everything to a cleanly formatted +.xhtml+
   class XHTMLCleaner
+    # [filename] The path to the xhtml to clean
+    # [class_config] A YAML containing the bold and italic classes to check. It defaults to
+    #                +text_style_classes.yaml+ since that's the one that
+    #                {TextStyleClassFinder}[rdoc-ref:EpubTools::TextStyleClassFinder] uses.
     def initialize(filename, class_config = 'text_style_classes.yaml')
       @filename = filename
       @classes = YAML.load_file(class_config).transform_keys(&:to_sym)
     end
 
+    # Calls the service class
     def call
       raw_content = read_and_strip_problematic_hr
       doc = parse_xml(raw_content)

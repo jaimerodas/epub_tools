@@ -4,9 +4,19 @@ require 'time'
 require 'securerandom'
 
 module EpubTools
+  # Sets up a basic empty EPUB directory structure with the basic files created:
+  # - +mimetype+
+  # - +container.xml+
+  # - +title.xhtml+ as a title page
+  # - +package.opf+
+  # - +nav.xhtml+ as a table of contents
+  # - +style.css+ a basic style inherited from the repo
+  # - cover image (optionally)
   class EpubInitializer
-    # title: book title; author: author name; destination: output EPUB directory
-    # cover_image: optional path to cover image file
+    # [title] Book title
+    # [author] Book Author
+    # [destination] Target directory
+    # [cover_image] Optional image path to use as a cover for the book
     def initialize(title, author, destination, cover_image = nil)
       @title = title
       @author = author
@@ -18,6 +28,7 @@ module EpubTools
       @cover_image_media_type = nil
     end
 
+    # Creates the empty ebook and returns the directory
     def run
       create_structure
       write_mimetype
@@ -27,6 +38,7 @@ module EpubTools
       write_package_opf
       write_nav
       write_style
+      @destination
     end
 
     private

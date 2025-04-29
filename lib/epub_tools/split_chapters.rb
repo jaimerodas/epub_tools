@@ -5,11 +5,19 @@ require_relative 'text_style_class_finder'
 require_relative 'xhtml_cleaner'
 
 module EpubTools
+  # Takes a Google Docs generated, already extracted from their EPUB, XHTML files with multiple
+  # chapters and it:
+  # - Extracts classes using {TextStyleClassFinder}[rdoc-ref:EpubTools::TextStyleClassFinder]
+  # - Looks for tags that say something like Chapter XX or Prologue and splits the text there
+  # - Creates new chapter_XX.xhtml files that are cleaned using
+  #   {XHTMLCleaner}[rdoc-ref:EpubTools::XHTMLCleaner]
+  # - Saves those files to +output_dir+
   class SplitChapters
-    # input_file: path to the source XHTML
-    # book_title: title to use in HTML <title> tags
-    # output_dir: where to write chapter files
-    # output_prefix: filename prefix (e.g. "chapter")
+    # [input_file] path to the source XHTML
+    # [book_title] title to use in HTML <title> tags
+    # [output_dir] where to write chapter files
+    # [output_prefix] filename prefix. Defaults to 'chapter' and you should never need to change it
+    # [verbose] whether to print progress to STDOUT.
     def initialize(input_file, book_title, output_dir = './chapters', output_prefix = 'chapter', verbose = false)
       @input_file    = input_file
       @book_title    = book_title
@@ -18,12 +26,13 @@ module EpubTools
       @verbose       = verbose
     end
 
+    # Runs the splitter
     def run
       # Prepare output dir
       Dir.mkdir(@output_dir) unless Dir.exist?(@output_dir)
 
       # Read the doc
-      raw_content = read_and_strip_problematic_hr
+      raw_content = read_and_strip_problematic_tags
       doc = Nokogiri::HTML(raw_content)
 
       # Find Style Classes
@@ -35,7 +44,7 @@ module EpubTools
 
     private
 
-    def read_and_strip_problematic_hr
+    def read_and_strip_problematic_tags
       File.read(@input_file).gsub(/<hr\b[^>]*\/?>/i, '').gsub(/<br\b[^>]*\/?>/i, '')
     end
 

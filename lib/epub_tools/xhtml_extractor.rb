@@ -2,8 +2,11 @@ require 'zip'
 require 'fileutils'
 
 module EpubTools
-  # Extracts .xhtml files from EPUB archives, excluding nav.xhtml
+  # Extracts text .xhtml files from EPUB archives, excluding nav.xhtml
   class XHTMLExtractor
+    # [source_dir] Directory that has source .epub files
+    # [target_dir] Directory where the extracted .xhtml files will be copied to
+    # [verbose] Whether to print progress to +STDOUT+ or not
     def initialize(source_dir:, target_dir:, verbose: false)
       @source_dir = File.expand_path(source_dir)
       @target_dir = File.expand_path(target_dir)
@@ -11,6 +14,7 @@ module EpubTools
       FileUtils.mkdir_p(@target_dir)
     end
 
+    # Runs the extraction process
     def extract_all
       epub_files.each do |epub_path|
         extract_xhtmls_from(epub_path)

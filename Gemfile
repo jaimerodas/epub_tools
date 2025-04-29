@@ -12,3 +12,9 @@ group :test do
   gem "minitest", "~> 5.25"
   gem "simplecov", require: false
 end
+
+group :doc do
+  gem "yard", "~> 0.9.37"
+  gem "rdoc", "~> 6.13"
+  gem "webrick", "~> 1.9"
+end

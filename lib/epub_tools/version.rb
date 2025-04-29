@@ -1,3 +1,4 @@
 module EpubTools
-  VERSION = '0.3.0'
+  # Ruby Gem version number
+  VERSION = '0.3.1'
 end

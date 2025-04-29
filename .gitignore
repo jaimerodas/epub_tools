@@ -1,6 +1,8 @@
 .DS_Store
 /.bundle/
 /coverage/
+/doc/
+/.yardoc/
 vendor/bundle/
 *.gem
 

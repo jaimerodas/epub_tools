@@ -5,11 +5,14 @@ require 'fileutils'
 module EpubTools
   # Moves new chapters into an unpacked EPUB
   class AddChapters
-    # Arguments:
-    # - *chapters_dir*: Directory from which to move the chapters
-    # - *epub_dir*: Unpacked EPUB directory to move the chapters to. It should be the same
-    #   directory that contains the *package.opf* and *nav.xhtml* files.
-    # - *verbose*: Whether to log progress to $stdout or not
+    # :args: chapters_dir, epub_dir, verbose:
+    # [chapters_dir] Directory from which to move the xhtml chapters. It assumes the
+    #                directory will contain one or more files named +chapter_XX.xhtml+,
+    #                where +XX+ is a number. Defaults to +./chapters+.
+    # [epub_dir] Unpacked EPUB directory to move the chapters to. It should be the same
+    #            directory that contains the +package.opf+ and +nav.xhtml+ files. Defaults
+    #            to +./epub/OEBPS+.
+    # [verbose:] Whether to log progress to +STDOUT+ or not. Defaults to +false+.
     def initialize(chapters_dir = './chapters', epub_dir = './epub/OEBPS', verbose = false)
       @chapters_dir = chapters_dir
       @epub_dir = epub_dir
@@ -19,12 +22,11 @@ module EpubTools
     end
 
     # It works like this:
-    # - First we move the *.xhtml files from *chapters_dir* over to *epub_dir*
-    # - Then it will add new entries to the manifest and spine of the EPUB's package.opf file. It
-    #   will sort the files by extracting the chapter number (it assumes the *.xhtml files are named
-    #   like chapter_42.xhtml)
-    # - Finally, it will update the *nav.xhtml* file with the new chapters. Note that a file named
-    #   chapter_0.xhtml will be added to the *nav.xhtml* as the Prologue
+    # - First, the *.xhtml files are moved from +chapters_dir+ over to +epub_dir+
+    # - Then, new entries will be added to the manifest and spine of the EPUB's +package.opf+ file.
+    #   It will sort the files by extracting the chapter number.
+    # - Finally, it will update the +nav.xhtml+ file with the new chapters. Note that if there's a
+    #   file named +chapter_0.xhtml+, it will be added to the +nav.xhtml+ as the Prologue.
     def run
       moved_files = move_chapters
       update_package_opf(moved_files)
