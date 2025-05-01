@@ -25,14 +25,22 @@ module EpubTools
     attr_reader :verbose
 
     # Initializes the class
-    def initialize(title:, author:, source_dir:, cover_image: nil, output_file: nil, build_dir: nil, verbose: false)
-      @title       = title
-      @author      = author
-      @source_dir  = source_dir
-      @cover_image = cover_image
-      @output_file = output_file || default_output_file
-      @build_dir   = build_dir || File.join(Dir.pwd, '.epub_tools_build')
-      @verbose     = verbose
+    # @param options [Hash] Configuration options
+    # @option options [String] :title Book title (required)
+    # @option options [String] :author Book author (required)
+    # @option options [String] :source_dir Path of the input epubs (required)
+    # @option options [String] :cover_image Optional path to the cover image
+    # @option options [String] :output_file Filename for the final epub (default: [title].epub)
+    # @option options [String] :build_dir Optional working directory for intermediate files
+    # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
+    def initialize(options = {})
+      @title       = options.fetch(:title)
+      @author      = options.fetch(:author)
+      @source_dir  = options.fetch(:source_dir)
+      @cover_image = options[:cover_image]
+      @output_file = options[:output_file] || default_output_file
+      @build_dir   = options[:build_dir] || File.join(Dir.pwd, '.epub_tools_build')
+      @verbose     = options[:verbose] || false
     end
 
     # Run the full compile workflow

@@ -108,5 +108,5 @@ when 'compile'
     opts.on('-c PATH', '--cover PATH', 'Cover image file path (optional)') { |v| o[:cover_image] = v }
     opts.on('-q', '--quiet', 'Run quietly (default: verbose)') { |v| o[:verbose] = !v }
   end
-  EpubTools::CompileBook.new(**options).run
+  EpubTools::CompileBook.new(options).run
 end
