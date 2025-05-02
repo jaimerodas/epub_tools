@@ -2,6 +2,7 @@
 require 'fileutils'
 require 'time'
 require 'securerandom'
+require_relative 'loggable'
 
 module EpubTools
   # Sets up a basic empty EPUB directory structure with the basic files created:
@@ -13,12 +14,14 @@ module EpubTools
   # - +style.css+ a basic style inherited from the repo
   # - cover image (optionally)
   class EpubInitializer
+    include Loggable
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :title Book title (required)
     # @option options [String] :author Book author (required)
     # @option options [String] :destination Target directory for the EPUB files (required)
     # @option options [String] :cover_image Optional path to the cover image
+    # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
     def initialize(options = {})
       @title = options.fetch(:title)
       @author = options.fetch(:author)
@@ -28,6 +31,7 @@ module EpubTools
       @cover_image_path = options[:cover_image]
       @cover_image_fname = nil
       @cover_image_media_type = nil
+      @verbose = options[:verbose] || false
     end
 
     # Creates the empty ebook and returns the directory
@@ -40,6 +44,7 @@ module EpubTools
       write_package_opf
       write_nav
       write_style
+      log "Created empty ebook structure at: #{@destination}"
       @destination
     end
 
