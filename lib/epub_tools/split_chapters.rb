@@ -2,13 +2,13 @@
 require 'nokogiri'
 require 'yaml'
 require_relative 'loggable'
-require_relative 'text_style_class_finder'
+require_relative 'style_finder'
 require_relative 'xhtml_cleaner'
 
 module EpubTools
   # Takes a Google Docs generated, already extracted from their EPUB, XHTML files with multiple
   # chapters and it:
-  # - Extracts classes using {TextStyleClassFinder}[rdoc-ref:EpubTools::TextStyleClassFinder]
+  # - Extracts classes using {StyleFinder}[rdoc-ref:EpubTools::StyleFinder]
   # - Looks for tags that say something like Chapter XX or Prologue and splits the text there
   # - Creates new chapter_XX.xhtml files that are cleaned using
   #   {XHTMLCleaner}[rdoc-ref:EpubTools::XHTMLCleaner]
@@ -41,7 +41,7 @@ module EpubTools
       doc = Nokogiri::HTML(raw_content)
 
       # Find Style Classes
-      TextStyleClassFinder.new({ file_path: @input_file, verbose: @verbose }).run
+      StyleFinder.new({ file_path: @input_file, verbose: @verbose }).run
 
       chapters = extract_chapters(doc)
       write_chapter_files(chapters)

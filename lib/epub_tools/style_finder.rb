@@ -7,7 +7,7 @@ module EpubTools
   # Finds css classes for bold and italic texts in Google Docs-generated EPUBs. Used by
   # {XHTMLCleaner}[rdoc-ref:EpubTools::XHTMLCleaner] and
   # {SplitChapters}[rdoc-ref:EpubTools::SplitChapters].
-  class TextStyleClassFinder
+  class StyleFinder
     include Loggable
     # Initializes the class
     # @param options [Hash] Configuration options
