@@ -54,7 +54,7 @@ class AddChaptersTest < Minitest::Test
 
   def test_run_moves_files_and_updates_opf_and_nav
     # Run the add chapters task
-    EpubTools::AddChapters.new(@chapters_dir, @epub_dir).run
+    EpubTools::AddChapters.new(chapters_dir: @chapters_dir, epub_dir: @epub_dir).run
 
     # Original chapter files should be moved
     assert_empty Dir.glob(File.join(@chapters_dir, '*.xhtml'))

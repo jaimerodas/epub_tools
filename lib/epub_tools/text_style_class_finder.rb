@@ -10,7 +10,7 @@ module EpubTools
     # [file_path] XHTML file to be analyzed.
     # [output_path] Defaults to +text_style_classes.yaml+. You should never need to change this.
     # [verbose] Whether to print progress or not
-    def initialize(file_path, output_path = 'text_style_classes.yaml', verbose: false)
+    def initialize(file_path:, output_path: 'text_style_classes.yaml', verbose: false)
       @file_path = file_path
       @output_path = output_path
       @verbose = verbose

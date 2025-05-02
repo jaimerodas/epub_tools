@@ -18,7 +18,7 @@ module EpubTools
     # [output_dir] where to write chapter files
     # [output_prefix] filename prefix. Defaults to 'chapter' and you should never need to change it
     # [verbose] whether to print progress to STDOUT.
-    def initialize(input_file, book_title, output_dir = './chapters', output_prefix = 'chapter', verbose = false)
+    def initialize(input_file:, book_title:, output_dir: './chapters', output_prefix: 'chapter', verbose: false)
       @input_file    = input_file
       @book_title    = book_title
       @output_dir    = output_dir
@@ -36,7 +36,7 @@ module EpubTools
       doc = Nokogiri::HTML(raw_content)
 
       # Find Style Classes
-      TextStyleClassFinder.new(@input_file, verbose: @verbose).run
+      TextStyleClassFinder.new(file_path: @input_file, verbose: @verbose).run
 
       chapters = extract_chapters(doc)
       write_chapter_files(chapters)
@@ -95,7 +95,7 @@ module EpubTools
           </body>
         </html>
       HTML
-      XHTMLCleaner.new(filename).run
+      XHTMLCleaner.new(filename: filename).run
       puts "Extracted: #{filename}" if @verbose
     end
 

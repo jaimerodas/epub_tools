@@ -22,7 +22,7 @@ class PackEbookTest < Minitest::Test
     File.write(File.join(@epub_dir, 'OEBPS', 'title.xhtml'), '<html/>' )
 
     output = File.join(@tmp, 'out.epub')
-    EpubTools::PackEbook.new(@epub_dir, output).run
+    EpubTools::PackEbook.new(input_dir: @epub_dir, output_file: output).run
 
     assert File.exist?(output), 'Expected output EPUB to exist'
     entries = []
@@ -44,7 +44,7 @@ class PackEbookTest < Minitest::Test
 
   def test_missing_input_dir_raises_error
     assert_raises(ArgumentError) do
-      EpubTools::PackEbook.new(File.join(@tmp, 'nonexistent'), 'out.epub').run
+      EpubTools::PackEbook.new(input_dir: File.join(@tmp, 'nonexistent'), output_file: 'out.epub').run
     end
   end
 
@@ -53,7 +53,7 @@ class PackEbookTest < Minitest::Test
     dir = File.join(@tmp, 'no_mime')
     Dir.mkdir(dir)
     assert_raises(ArgumentError) do
-      EpubTools::PackEbook.new(dir, 'out.epub').run
+      EpubTools::PackEbook.new(input_dir: dir, output_file: 'out.epub').run
     end
   end
 
@@ -61,7 +61,7 @@ class PackEbookTest < Minitest::Test
     # Setup minimal structure with mimetype
     File.write(File.join(@epub_dir, 'mimetype'), 'application/epub+zip')
     # Run without specifying output; default is "<basename>.epub" in parent
-    EpubTools::PackEbook.new(@epub_dir).run
+    EpubTools::PackEbook.new(input_dir: @epub_dir).run
     default_path = File.join(@tmp, 'my_epub.epub')
     assert File.exist?(default_path), "Expected default EPUB at \\#{default_path}"
   end

@@ -20,7 +20,7 @@ module EpubTools
     # [class_config] A YAML containing the bold and italic classes to check. It defaults to
     #                +text_style_classes.yaml+ since that's the one that
     #                {TextStyleClassFinder}[rdoc-ref:EpubTools::TextStyleClassFinder] uses.
-    def initialize(filename, class_config = 'text_style_classes.yaml')
+    def initialize(filename:, class_config: 'text_style_classes.yaml')
       @filename = filename
       @classes = YAML.load_file(class_config).transform_keys(&:to_sym)
     end

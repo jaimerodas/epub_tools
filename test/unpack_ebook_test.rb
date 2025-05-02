@@ -40,7 +40,7 @@ class UnpackEbookTest < Minitest::Test
   end
 
   def test_run_extracts_all_entries
-    EpubTools::UnpackEbook.new(@epub_file, @dest_dir).run
+    EpubTools::UnpackEbook.new(epub_file: @epub_file, output_dir: @dest_dir).run
     # Check extracted files
     assert Dir.exist?(@dest_dir)
     assert_equal 'application/epub+zip', File.read(File.join(@dest_dir, 'mimetype'))
@@ -51,7 +51,7 @@ class UnpackEbookTest < Minitest::Test
   def test_missing_epub_raises_error
     missing = File.join(@tmp, 'nope.epub')
     error = assert_raises(ArgumentError) do
-      EpubTools::UnpackEbook.new(missing, @dest_dir).run
+      EpubTools::UnpackEbook.new(epub_file: missing, output_dir: @dest_dir).run
     end
     assert_includes error.message, "does not exist"
   end

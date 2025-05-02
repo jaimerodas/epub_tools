@@ -13,7 +13,7 @@ module EpubTools
     #            directory that contains the +package.opf+ and +nav.xhtml+ files. Defaults
     #            to +./epub/OEBPS+.
     # [verbose:] Whether to log progress to +STDOUT+ or not. Defaults to +false+.
-    def initialize(chapters_dir = './chapters', epub_dir = './epub/OEBPS', verbose = false)
+    def initialize(chapters_dir: './chapters', epub_dir: './epub/OEBPS', verbose: false)
       @chapters_dir = chapters_dir
       @epub_dir = epub_dir
       @opf_file = File.join(@epub_dir, 'package.opf')

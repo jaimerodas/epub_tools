@@ -7,7 +7,7 @@ module EpubTools
   class PackEbook
     # [input_dir] Path to the EPUB directory (containing mimetype, META-INF, OEBPS)
     # [output_file] Path to resulting .epub file; if +nil+, defaults to <tt><input_dir>.epub</tt>
-    def initialize(input_dir, output_file = nil, verbose: false)
+    def initialize(input_dir:, output_file: nil, verbose: false)
       @input_dir = File.expand_path(input_dir)
       default_name = "#{File.basename(@input_dir)}.epub"
       @output_file = if output_file.nil? || output_file.empty?

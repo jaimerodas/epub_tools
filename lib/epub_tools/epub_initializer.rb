@@ -17,7 +17,7 @@ module EpubTools
     # [author] Book Author
     # [destination] Target directory
     # [cover_image] Optional image path to use as a cover for the book
-    def initialize(title, author, destination, cover_image = nil)
+    def initialize(title:, author:, destination:, cover_image: nil)
       @title = title
       @author = author
       @destination = File.expand_path(destination)

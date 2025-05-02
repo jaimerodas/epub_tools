@@ -27,7 +27,7 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def test_run_generates_chapter_files
-    EpubTools::SplitChapters.new(@input, 'BookTitle', @out, 'chap').run
+    EpubTools::SplitChapters.new(input_file: @input, book_title: 'BookTitle', output_dir: @out, output_prefix: 'chap').run
     files = Dir.children(@out)
     assert_includes files, 'chap_0.xhtml'
     assert_includes files, 'chap_1.xhtml'

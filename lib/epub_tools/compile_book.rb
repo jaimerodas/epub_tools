@@ -100,7 +100,7 @@ module EpubTools
       Dir.glob(File.join(xhtml_dir, '*.xhtml')).each do |xhtml_file|
         base = File.basename(xhtml_file, '.xhtml')
         log "Splitting '#{base}'..."
-        SplitChapters.new(xhtml_file, title, chapters_dir, 'chapter', verbose).run
+        SplitChapters.new(input_file: xhtml_file, book_title: title, output_dir: chapters_dir, output_prefix: 'chapter', verbose: verbose).run
       end
     end
 
@@ -124,20 +124,20 @@ module EpubTools
     def initialize_epub
       log "Initializing new EPUB..."
       if cover_image
-        EpubInitializer.new(title, author, epub_dir, cover_image).run
+        EpubInitializer.new(title: title, author: author, destination: epub_dir, cover_image: cover_image).run
       else
-        EpubInitializer.new(title, author, epub_dir).run
+        EpubInitializer.new(title: title, author: author, destination: epub_dir).run
       end
     end
 
     def add_chapters
       log "Adding chapters to EPUB..."
-      AddChapters.new(chapters_dir, File.join(epub_dir, 'OEBPS'), verbose).run
+      AddChapters.new(chapters_dir: chapters_dir, epub_dir: File.join(epub_dir, 'OEBPS'), verbose: verbose).run
     end
 
     def pack_epub
       log "Building final EPUB '#{output_file}'..."
-      PackEbook.new(epub_dir, output_file, verbose: verbose).run
+      PackEbook.new(input_dir: epub_dir, output_file: output_file, verbose: verbose).run
     end
   end
 end

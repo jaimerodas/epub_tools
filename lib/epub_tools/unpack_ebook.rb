@@ -7,7 +7,7 @@ module EpubTools
     # [epub_file] path to the .epub file
     # [output_dir] Directory to extract into; defaults to basename of epub_file without .epub
     # [verbose] Whether to log things to $stdout while the class runs or not
-    def initialize(epub_file, output_dir = nil, verbose: false)
+    def initialize(epub_file:, output_dir: nil, verbose: false)
       @epub_file = File.expand_path(epub_file)
       @output_dir = (output_dir.nil? || output_dir.empty?) ? default_dir: output_dir
       @verbose = verbose
