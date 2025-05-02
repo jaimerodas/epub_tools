@@ -90,7 +90,7 @@ module EpubTools
       return false unless command
 
       options = command[:default_options].dup
-      
+
       parse(options, command[:required_keys]) do |opts, o|
         opts.banner = "Usage: #{prog} #{cmd} [options]"
         block.call(opts, o) if block_given?

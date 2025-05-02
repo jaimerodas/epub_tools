@@ -109,7 +109,7 @@ module EpubTools
     end
 
     def display_label(label)
-      label > 0 ? "Chapter #{label}" : 'Prologue'
+      label.positive? ? "Chapter #{label}" : 'Prologue'
     end
 
     # Detect a bolded Prologue marker

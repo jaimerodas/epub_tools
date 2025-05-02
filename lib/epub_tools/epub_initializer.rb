@@ -133,21 +133,26 @@ module EpubTools
       File.write(File.join(@destination, 'OEBPS', 'cover.xhtml'), content)
     end
 
+    def mitem(id, href, type, properties = nil)
+      xml = "<item id=\"#{id}\" href=\"#{href}\" media-type=\"#{type}\""
+      xml += " properties=\"#{properties}\"" if properties
+      "#{xml}/>"
+    end
+
     # Generates the package.opf with optional cover image entries
     def write_package_opf
       manifest_items = []
       spine_items = []
-
-      manifest_items << '<item id="style" href="style.css" media-type="text/css"/>'
-      manifest_items << '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'
+      manifest_items << mitem('style', 'style.css', 'text/css')
+      manifest_items << mitem('nav', 'nav.xhtml', 'application/xhtml+xml', 'nav')
 
       if @cover_image_fname
-        manifest_items << %(<item id="cover-image" href="#{@cover_image_fname}" media-type="#{@cover_image_media_type}" properties="cover-image"/>)
-        manifest_items << '<item id="cover-page" href="cover.xhtml" media-type="application/xhtml+xml"/>'
+        manifest_items << mitem('cover-image', @cover_image_fname, @cover_image_media_type, 'cover-image')
+        manifest_items << mitem('cover-page', 'cover.xhtml', 'application/xhtml+xml')
         spine_items << '<itemref idref="cover-page"/>'
       end
 
-      manifest_items << '<item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>'
+      manifest_items << mitem('title', 'title.xhtml', 'application/xhtml+xml')
       spine_items << '<itemref idref="title"/>'
 
       metadata = []
