@@ -50,7 +50,7 @@ when 'extract'
     source_dir: options[:source_dir],
     target_dir: options[:target_dir],
     verbose: options[:verbose]
-  ).extract_all
+  ).run
 
 when 'split'
   options = { output_dir: './chapters', prefix: 'chapter', verbose: true }

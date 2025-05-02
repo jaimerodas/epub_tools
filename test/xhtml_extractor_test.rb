@@ -22,7 +22,7 @@ class XHTMLExtractorTest < Minitest::Test
   end
 
   def test_extracts_xhtml_excluding_nav
-    @extractor.extract_all
+    @extractor.run
     files = Dir.children(@tgt)
     assert_includes files, 'sample_chapter1.xhtml'
     assert_includes files, 'sample_ch2.xhtml'

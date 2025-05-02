@@ -18,7 +18,7 @@ module EpubTools
     end
 
     # Runs the finder
-    def call
+    def run
       doc = Nokogiri::HTML(File.read(@file_path))
       style_blocks = doc.xpath('//style').map(&:text).join("\n")
 

@@ -25,8 +25,8 @@ module EpubTools
       @classes = YAML.load_file(class_config).transform_keys(&:to_sym)
     end
 
-    # Calls the service class
-    def call
+    # Runs the cleaner
+    def run
       raw_content = read_and_strip_problematic_hr
       doc = parse_xml(raw_content)
       remove_empty_paragraphs(doc)

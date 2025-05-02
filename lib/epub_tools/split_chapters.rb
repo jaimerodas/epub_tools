@@ -36,7 +36,7 @@ module EpubTools
       doc = Nokogiri::HTML(raw_content)
 
       # Find Style Classes
-      TextStyleClassFinder.new(@input_file, verbose: @verbose).call
+      TextStyleClassFinder.new(@input_file, verbose: @verbose).run
 
       chapters = extract_chapters(doc)
       write_chapter_files(chapters)
@@ -95,7 +95,7 @@ module EpubTools
           </body>
         </html>
       HTML
-      XHTMLCleaner.new(filename).call
+      XHTMLCleaner.new(filename).run
       puts "Extracted: #{filename}" if @verbose
     end
 

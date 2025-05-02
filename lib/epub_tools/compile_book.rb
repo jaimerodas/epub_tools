@@ -92,7 +92,7 @@ module EpubTools
 
     def extract_xhtmls
       log "Extracting XHTML files from epubs in '#{source_dir}'..."
-      XHTMLExtractor.new(source_dir: source_dir, target_dir: xhtml_dir, verbose: verbose).extract_all
+      XHTMLExtractor.new(source_dir: source_dir, target_dir: xhtml_dir, verbose: verbose).run
     end
 
     def split_xhtmls

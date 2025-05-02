@@ -15,7 +15,7 @@ module EpubTools
     end
 
     # Runs the extraction process
-    def extract_all
+    def run
       epub_files.each do |epub_path|
         extract_xhtmls_from(epub_path)
       end

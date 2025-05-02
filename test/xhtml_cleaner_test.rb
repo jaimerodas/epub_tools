@@ -28,7 +28,7 @@ class XHTMLCleanerTest < Minitest::Test
   end
 
   def test_cleaner_removes_and_transforms_tags
-    EpubTools::XHTMLCleaner.new(@file, @config).call
+    EpubTools::XHTMLCleaner.new(@file, @config).run
     result = File.read(@file)
     assert_includes result, '<i>ItalicsOnly</i>'
     assert_includes result, 'KeepThis'
