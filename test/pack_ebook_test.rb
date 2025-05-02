@@ -17,13 +17,15 @@ class PackEbookTest < Minitest::Test
     # Create minimal EPUB directory
     File.write(File.join(@epub_dir, 'mimetype'), 'application/epub+zip')
     FileUtils.mkdir_p(File.join(@epub_dir, 'META-INF'))
-    File.write(File.join(@epub_dir, 'META-INF', 'container.xml'), '<container/>' )
+    File.write(File.join(@epub_dir, 'META-INF', 'container.xml'), '<container/>')
     FileUtils.mkdir_p(File.join(@epub_dir, 'OEBPS'))
-    File.write(File.join(@epub_dir, 'OEBPS', 'title.xhtml'), '<html/>' )
+    File.write(File.join(@epub_dir, 'OEBPS', 'title.xhtml'), '<html/>')
 
     output = File.join(@tmp, 'out.epub')
-    EpubTools::PackEbook.new(input_dir: @epub_dir, output_file: output).run
+    result = EpubTools::PackEbook.new(input_dir: @epub_dir, output_file: output).run
 
+    # Check return value is the output file path
+    assert_equal output, result
     assert File.exist?(output), 'Expected output EPUB to exist'
     entries = []
     Zip::File.open(output) do |zip|
@@ -61,8 +63,11 @@ class PackEbookTest < Minitest::Test
     # Setup minimal structure with mimetype
     File.write(File.join(@epub_dir, 'mimetype'), 'application/epub+zip')
     # Run without specifying output; default is "<basename>.epub" in parent
-    EpubTools::PackEbook.new(input_dir: @epub_dir).run
+    result = EpubTools::PackEbook.new(input_dir: @epub_dir).run
     default_path = File.join(@tmp, 'my_epub.epub')
+
+    # Check return value is the default output path
+    assert_equal 'my_epub.epub', result
     assert File.exist?(default_path), "Expected default EPUB at \\#{default_path}"
   end
 end

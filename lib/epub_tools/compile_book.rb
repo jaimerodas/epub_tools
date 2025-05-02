@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'fileutils'
+require_relative 'loggable'
 require_relative 'xhtml_extractor'
 require_relative 'split_chapters'
 require_relative 'epub_initializer'
@@ -9,6 +10,7 @@ require_relative 'pack_ebook'
 module EpubTools
   # Orchestrates extraction, splitting, validation, and packaging of book EPUBs
   class CompileBook
+    include Loggable
     # Book title
     attr_reader :title
     # Book author
@@ -59,10 +61,6 @@ module EpubTools
 
     private
 
-    def log(message)
-      puts message if verbose
-    end
-
     def default_output_file
       "#{title.gsub(' ', '_')}.epub"
     end
@@ -73,7 +71,7 @@ module EpubTools
     end
 
     def prepare_dirs
-      log "Preparing build directories..."
+      log 'Preparing build directories...'
       FileUtils.mkdir_p(xhtml_dir)
       FileUtils.mkdir_p(chapters_dir)
     end
@@ -92,52 +90,78 @@ module EpubTools
 
     def extract_xhtmls
       log "Extracting XHTML files from epubs in '#{source_dir}'..."
-      XHTMLExtractor.new(source_dir: source_dir, target_dir: xhtml_dir, verbose: verbose).run
+      XHTMLExtractor.new({
+                           source_dir: source_dir,
+                           target_dir: xhtml_dir,
+                           verbose: verbose
+                         }).run
     end
 
     def split_xhtmls
-      log "Splitting XHTML files into chapters..."
+      log 'Splitting XHTML files into chapters...'
       Dir.glob(File.join(xhtml_dir, '*.xhtml')).each do |xhtml_file|
         base = File.basename(xhtml_file, '.xhtml')
         log "Splitting '#{base}'..."
-        SplitChapters.new(input_file: xhtml_file, book_title: title, output_dir: chapters_dir, output_prefix: 'chapter', verbose: verbose).run
+        SplitChapters.new({
+                            input_file: xhtml_file,
+                            book_title: title,
+                            output_dir: chapters_dir,
+                            output_prefix: 'chapter',
+                            verbose: verbose
+                          }).run
       end
     end
 
     def validate_sequence
-      log "Validating chapter sequence..."
+      log 'Validating chapter sequence...'
       nums = Dir.glob(File.join(chapters_dir, '*.xhtml')).map do |file|
         if (m = File.basename(file, '.xhtml').match(/_(\d+)\z/))
           m[1].to_i
         end
       end.compact
       raise "No chapter files found in #{chapters_dir}" if nums.empty?
+
       sorted = nums.sort.uniq
       missing = (sorted.first..sorted.last).to_a - sorted
-      if missing.any?
-        raise "Missing chapter numbers: #{missing.join(' ')}"
-      else
-        log "Chapter sequence is complete: #{sorted.first} to #{sorted.last}."
-      end
+      raise "Missing chapter numbers: #{missing.join(' ')}" if missing.any?
+
+      log "Chapter sequence is complete: #{sorted.first} to #{sorted.last}."
     end
 
     def initialize_epub
-      log "Initializing new EPUB..."
+      log 'Initializing new EPUB...'
       if cover_image
-        EpubInitializer.new(title: title, author: author, destination: epub_dir, cover_image: cover_image).run
+        EpubInitializer.new({
+                              title: title,
+                              author: author,
+                              destination: epub_dir,
+                              cover_image: cover_image
+                            }).run
       else
-        EpubInitializer.new(title: title, author: author, destination: epub_dir).run
+        EpubInitializer.new({
+                              title: title,
+                              author: author,
+                              destination: epub_dir
+                            }).run
       end
     end
 
     def add_chapters
-      log "Adding chapters to EPUB..."
-      AddChapters.new(chapters_dir: chapters_dir, epub_dir: File.join(epub_dir, 'OEBPS'), verbose: verbose).run
+      log 'Adding chapters to EPUB...'
+      AddChapters.new({
+                        chapters_dir: chapters_dir,
+                        epub_dir: File.join(epub_dir, 'OEBPS'),
+                        verbose: verbose
+                      }).run
     end
 
     def pack_epub
       log "Building final EPUB '#{output_file}'..."
-      PackEbook.new(input_dir: epub_dir, output_file: output_file, verbose: verbose).run
+      PackEbook.new({
+                      input_dir: epub_dir,
+                      output_file: output_file,
+                      verbose: verbose
+                    }).run
     end
   end
 end

@@ -87,7 +87,7 @@ class CompileBookTest < Minitest::Test
       build_dir: build
     )
     cb.send(:prepare_dirs)
-    xhtml_dir   = cb.send(:xhtml_dir)
+    xhtml_dir = cb.send(:xhtml_dir)
     chapters_dir = cb.send(:chapters_dir)
     assert Dir.exist?(xhtml_dir)
     assert Dir.exist?(chapters_dir)

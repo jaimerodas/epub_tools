@@ -16,16 +16,19 @@ module EpubTools
   # - Unwraps any <tt><span></tt> tags that have no classes assigned.
   # - Outputs everything to a cleanly formatted +.xhtml+
   class XHTMLCleaner
-    # [filename] The path to the xhtml to clean
-    # [class_config] A YAML containing the bold and italic classes to check. It defaults to
-    #                +text_style_classes.yaml+ since that's the one that
-    #                {TextStyleClassFinder}[rdoc-ref:EpubTools::TextStyleClassFinder] uses.
-    def initialize(filename:, class_config: 'text_style_classes.yaml')
-      @filename = filename
+    # Initializes the class
+    # @param options [Hash] Configuration options
+    # @option options [String] :filename The path to the xhtml to clean (required)
+    # @option options [String] :class_config Path to a YAML file containing the bold and italic classes to check
+    #                          (default: 'text_style_classes.yaml')
+    def initialize(options = {})
+      @filename = options.fetch(:filename)
+      class_config = options[:class_config] || 'text_style_classes.yaml'
       @classes = YAML.load_file(class_config).transform_keys(&:to_sym)
     end
 
     # Runs the cleaner
+    # @return [String] Path to the cleaned file
     def run
       raw_content = read_and_strip_problematic_hr
       doc = parse_xml(raw_content)
@@ -34,24 +37,25 @@ module EpubTools
       replace_italic_spans(doc)
       unwrap_remaining_spans(doc)
       write_pretty_output(doc)
+      @filename
     end
 
     private
 
     def read_and_strip_problematic_hr
-      File.read(@filename).gsub(/<hr\b[^>]*\/?>/i, '').gsub(/<br\b[^>]*\/?>/i, '')
+      File.read(@filename).gsub(%r{<hr\b[^>]*/?>}i, '').gsub(%r{<br\b[^>]*/?>}i, '')
     end
 
     def parse_xml(content)
       Nokogiri::XML(content) { |config| config.default_xml.noblanks }
-    rescue => e
+    rescue StandardError => e
       abort "Error parsing XML: #{e.message}"
     end
 
     def remove_empty_paragraphs(doc)
       doc.css('p').each do |p|
         content = p.inner_html.strip
-        if content.empty? || content =~ /\A(<span[^>]*>\s*<\/span>\s*)+\z/
+        if content.empty? || content =~ %r{\A(<span[^>]*>\s*</span>\s*)+\z}
           p.remove
         else
           p.remove_attribute('class')
@@ -70,14 +74,14 @@ module EpubTools
     def replace_italic_spans(doc)
       @classes[:italics].each do |class_name|
         doc.css("span.#{class_name}").each do |node|
-          node.name = "i"
+          node.name = 'i'
           node.remove_attribute('class')
         end
       end
     end
 
     def unwrap_remaining_spans(doc)
-      doc.css("span").each do |span|
+      doc.css('span').each do |span|
         span.add_next_sibling(span.dup.content)
         span.remove
       end

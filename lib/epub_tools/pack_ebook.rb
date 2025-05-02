@@ -1,21 +1,27 @@
 require 'zip'
 require 'fileutils'
 require 'pathname'
+require_relative 'loggable'
 
 module EpubTools
   # Packages an EPUB directory into a .epub file
   class PackEbook
-    # [input_dir] Path to the EPUB directory (containing mimetype, META-INF, OEBPS)
-    # [output_file] Path to resulting .epub file; if +nil+, defaults to <tt><input_dir>.epub</tt>
-    def initialize(input_dir:, output_file: nil, verbose: false)
-      @input_dir = File.expand_path(input_dir)
+    include Loggable
+    # Initializes the class
+    # @param options [Hash] Configuration options
+    # @option options [String] :input_dir Path to the EPUB directory (containing mimetype, META-INF, OEBPS) (required)
+    # @option options [String] :output_file Path to resulting .epub file (default: <input_dir>.epub)
+    # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
+    def initialize(options = {})
+      @input_dir = File.expand_path(options.fetch(:input_dir))
       default_name = "#{File.basename(@input_dir)}.epub"
+      output_file = options[:output_file]
       @output_file = if output_file.nil? || output_file.empty?
                        default_name
                      else
                        output_file
                      end
-      @verbose = verbose
+      @verbose = options[:verbose] || false
     end
 
     # Runs the packaging process and returns the resulting file path
@@ -33,24 +39,24 @@ module EpubTools
           Dir.glob('**/*', File::FNM_DOTMATCH).sort.each do |entry|
             next if ['.', '..', 'mimetype'].include?(entry)
             next if File.directory?(entry)
+
             zip.add(entry, entry)
           end
         end
       end
-      puts "EPUB created: #{@output_file}" if @verbose
+      log "EPUB created: #{@output_file}"
       @output_file
     end
 
     private
 
     def validate_input!
-      unless Dir.exist?(@input_dir)
-        raise ArgumentError, "Directory '#{@input_dir}' does not exist."
-      end
+      raise ArgumentError, "Directory '#{@input_dir}' does not exist." unless Dir.exist?(@input_dir)
+
       mimetype = File.join(@input_dir, 'mimetype')
-      unless File.file?(mimetype)
-        raise ArgumentError, "Error: 'mimetype' file missing in #{@input_dir}"
-      end
+      return if File.file?(mimetype)
+
+      raise ArgumentError, "Error: 'mimetype' file missing in #{@input_dir}"
     end
 
     def add_mimetype(zip)

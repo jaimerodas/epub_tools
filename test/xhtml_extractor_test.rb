@@ -22,7 +22,22 @@ class XHTMLExtractorTest < Minitest::Test
   end
 
   def test_extracts_xhtml_excluding_nav
-    @extractor.run
+    result = @extractor.run
+
+    # Check return value is an array of extracted file paths
+    assert_instance_of Array, result
+    assert_equal 2, result.size
+
+    expected_paths = [
+      File.join(@tgt, 'sample_chapter1.xhtml'),
+      File.join(@tgt, 'sample_ch2.xhtml')
+    ]
+
+    expected_paths.each do |path|
+      assert_includes result, path
+      assert File.exist?(path)
+    end
+
     files = Dir.children(@tgt)
     assert_includes files, 'sample_chapter1.xhtml'
     assert_includes files, 'sample_ch2.xhtml'

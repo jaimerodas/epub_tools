@@ -14,7 +14,11 @@ class EpubInitializerTest < Minitest::Test
   end
 
   def test_run_creates_basic_structure
-    EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest).run
+    result = EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest).run
+
+    # Check return value is the destination directory
+    assert_equal @dest, result
+
     # Check directories
     assert Dir.exist?(@dest)
     assert File.directory?(File.join(@dest, 'META-INF'))
@@ -60,7 +64,7 @@ class EpubInitializerTest < Minitest::Test
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.jpg'))
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.xhtml'))
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
-    assert_includes opf, "<item id=\"cover-image\" href=\"cover.jpg\" media-type=\"image/jpeg\""
+    assert_includes opf, '<item id="cover-image" href="cover.jpg" media-type="image/jpeg"'
     assert_includes opf, '<item id="cover-page"'
     assert_includes opf, '<itemref idref="cover-page"'
     cover_xhtml = File.read(File.join(@dest, 'OEBPS', 'cover.xhtml'))
@@ -74,7 +78,7 @@ class EpubInitializerTest < Minitest::Test
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.jpeg'))
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.xhtml'))
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
-    assert_includes opf, "<item id=\"cover-image\" href=\"cover.jpeg\" media-type=\"image/jpeg\""
+    assert_includes opf, '<item id="cover-image" href="cover.jpeg" media-type="image/jpeg"'
     cover_xhtml = File.read(File.join(@dest, 'OEBPS', 'cover.xhtml'))
     assert_includes cover_xhtml, 'src="cover.jpeg"'
   end
@@ -85,7 +89,7 @@ class EpubInitializerTest < Minitest::Test
     EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest, cover_image: cover).run
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.gif'))
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
-    assert_includes opf, "<item id=\"cover-image\" href=\"cover.gif\" media-type=\"image/gif\""
+    assert_includes opf, '<item id="cover-image" href="cover.gif" media-type="image/gif"'
   end
 
   def test_run_with_cover_svg
@@ -94,14 +98,14 @@ class EpubInitializerTest < Minitest::Test
     EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest, cover_image: cover).run
     assert File.exist?(File.join(@dest, 'OEBPS', 'cover.svg'))
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
-    assert_includes opf, "<item id=\"cover-image\" href=\"cover.svg\" media-type=\"image/svg+xml\""
+    assert_includes opf, '<item id="cover-image" href="cover.svg" media-type="image/svg+xml"'
   end
 
   def test_run_with_unsupported_cover_image
     cover = File.join(@tmp, 'cover.bmp')
     File.write(cover, 'BMPDATA')
     ei = EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest, cover_image: cover)
-    assert_output("", /unsupported cover image type/) { ei.run }
+    assert_output('', /unsupported cover image type/) { ei.run }
     refute File.exist?(File.join(@dest, 'OEBPS', 'cover.bmp'))
     refute File.exist?(File.join(@dest, 'OEBPS', 'cover.xhtml'))
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
@@ -111,7 +115,7 @@ class EpubInitializerTest < Minitest::Test
   def test_run_without_cover_but_declaring_cover
     cover = File.join(@tmp, 'cover.bmp')
     ei = EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest, cover_image: cover)
-    assert_output("", /not found/) { ei.run }
+    assert_output('', /not found/) { ei.run }
     refute File.exist?(File.join(@dest, 'OEBPS', 'cover.xhtml'))
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
     refute_includes opf, 'cover-image'

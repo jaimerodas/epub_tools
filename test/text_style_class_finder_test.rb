@@ -30,8 +30,8 @@ class TextStyleClassFinderTest < Minitest::Test
 
   def test_verbose_mode
     text = <<~OUTPUT
-    Classes with font-style: italic: c1
-    Classes with font-weight: 700: c2
+      Classes with font-style: italic: c1
+      Classes with font-weight: 700: c2
     OUTPUT
     assert_output(text) do
       EpubTools::TextStyleClassFinder.new(file_path: @xhtml, output_path: @yaml, verbose: true).run

@@ -28,12 +28,17 @@ class XHTMLCleanerTest < Minitest::Test
   end
 
   def test_cleaner_removes_and_transforms_tags
-    EpubTools::XHTMLCleaner.new(filename: @file, class_config: @config).run
-    result = File.read(@file)
-    assert_includes result, '<i>ItalicsOnly</i>'
-    assert_includes result, 'KeepThis'
-    refute_includes result, '<span'
-    refute_includes result, '<hr'
-    refute_includes result, 'RemoveMe'
+    result = EpubTools::XHTMLCleaner.new(filename: @file, class_config: @config).run
+
+    # Check return value is the filename that was cleaned
+    assert_equal @file, result
+    assert File.exist?(@file)
+
+    content = File.read(@file)
+    assert_includes content, '<i>ItalicsOnly</i>'
+    assert_includes content, 'KeepThis'
+    refute_includes content, '<span'
+    refute_includes content, '<hr'
+    refute_includes content, 'RemoveMe'
   end
 end

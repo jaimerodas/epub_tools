@@ -24,6 +24,7 @@ class UnpackEbookTest < Minitest::Test
       Dir.glob(File.join(@build_dir, '**', '*'), File::FNM_DOTMATCH).sort.each do |src_path|
         rel_path = src_path.sub(%r{^#{Regexp.escape(@build_dir)}/?}, '')
         next if rel_path.empty? || rel_path == 'mimetype'
+
         if File.directory?(src_path)
           zip.mkdir(rel_path)
         else
@@ -40,7 +41,11 @@ class UnpackEbookTest < Minitest::Test
   end
 
   def test_run_extracts_all_entries
-    EpubTools::UnpackEbook.new(epub_file: @epub_file, output_dir: @dest_dir).run
+    result = EpubTools::UnpackEbook.new(epub_file: @epub_file, output_dir: @dest_dir).run
+
+    # Check return value is the output directory path
+    assert_equal @dest_dir, result
+
     # Check extracted files
     assert Dir.exist?(@dest_dir)
     assert_equal 'application/epub+zip', File.read(File.join(@dest_dir, 'mimetype'))
@@ -48,11 +53,21 @@ class UnpackEbookTest < Minitest::Test
     assert File.exist?(File.join(@dest_dir, 'OEBPS', 'title.xhtml'))
   end
 
+  def test_run_with_default_output_dir
+    # Create the test with default output directory
+    result = EpubTools::UnpackEbook.new(epub_file: @epub_file).run
+
+    expected_dir = File.join(File.dirname(@epub_file), File.basename(@epub_file, '.epub'))
+    assert_equal expected_dir, result
+    assert Dir.exist?(expected_dir)
+    assert File.exist?(File.join(expected_dir, 'mimetype'))
+  end
+
   def test_missing_epub_raises_error
     missing = File.join(@tmp, 'nope.epub')
     error = assert_raises(ArgumentError) do
       EpubTools::UnpackEbook.new(epub_file: missing, output_dir: @dest_dir).run
     end
-    assert_includes error.message, "does not exist"
+    assert_includes error.message, 'does not exist'
   end
 end

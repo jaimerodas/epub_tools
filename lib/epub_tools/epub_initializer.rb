@@ -13,17 +13,19 @@ module EpubTools
   # - +style.css+ a basic style inherited from the repo
   # - cover image (optionally)
   class EpubInitializer
-    # [title] Book title
-    # [author] Book Author
-    # [destination] Target directory
-    # [cover_image] Optional image path to use as a cover for the book
-    def initialize(title:, author:, destination:, cover_image: nil)
-      @title = title
-      @author = author
-      @destination = File.expand_path(destination)
+    # Initializes the class
+    # @param options [Hash] Configuration options
+    # @option options [String] :title Book title (required)
+    # @option options [String] :author Book author (required)
+    # @option options [String] :destination Target directory for the EPUB files (required)
+    # @option options [String] :cover_image Optional path to the cover image
+    def initialize(options = {})
+      @title = options.fetch(:title)
+      @author = options.fetch(:author)
+      @destination = File.expand_path(options.fetch(:destination))
       @uuid = "urn:uuid:#{SecureRandom.uuid}"
       @modified = Time.now.utc.iso8601
-      @cover_image_path = cover_image
+      @cover_image_path = options[:cover_image]
       @cover_image_fname = nil
       @cover_image_media_type = nil
     end
@@ -49,7 +51,7 @@ module EpubTools
     end
 
     def write_mimetype
-      File.write("#{@destination}/mimetype", "application/epub+zip")
+      File.write("#{@destination}/mimetype", 'application/epub+zip')
     end
 
     def write_title_page
@@ -135,7 +137,7 @@ module EpubTools
       manifest_items << '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'
 
       if @cover_image_fname
-        manifest_items << %Q{<item id="cover-image" href="#{@cover_image_fname}" media-type="#{@cover_image_media_type}" properties="cover-image"/>}
+        manifest_items << %(<item id="cover-image" href="#{@cover_image_fname}" media-type="#{@cover_image_media_type}" properties="cover-image"/>)
         manifest_items << '<item id="cover-page" href="cover.xhtml" media-type="application/xhtml+xml"/>'
         spine_items << '<itemref idref="cover-page"/>'
       end
@@ -144,18 +146,16 @@ module EpubTools
       spine_items << '<itemref idref="title"/>'
 
       metadata = []
-      metadata << %Q{<dc:identifier id="pub-id">#{@uuid}</dc:identifier>}
-      metadata << %Q{<dc:title>#{@title}</dc:title>}
-      metadata << %Q{<dc:creator>#{@author}</dc:creator>}
-      metadata << "<dc:language>en</dc:language>"
-      metadata << %Q{<meta property="dcterms:modified">#{@modified}</meta>}
-      metadata << %Q{<meta property="schema:accessMode">textual</meta>}
-      metadata << %Q{<meta property="schema:accessibilityFeature">unknown</meta>}
-      metadata << %Q{<meta property="schema:accessibilityHazard">none</meta>}
-      metadata << %Q{<meta property="schema:accessModeSufficient">textual</meta>}
-      if @cover_image_fname
-        metadata << %Q{<meta name="cover" content="cover-image"/>}
-      end
+      metadata << %(<dc:identifier id="pub-id">#{@uuid}</dc:identifier>)
+      metadata << %(<dc:title>#{@title}</dc:title>)
+      metadata << %(<dc:creator>#{@author}</dc:creator>)
+      metadata << '<dc:language>en</dc:language>'
+      metadata << %(<meta property="dcterms:modified">#{@modified}</meta>)
+      metadata << %(<meta property="schema:accessMode">textual</meta>)
+      metadata << %(<meta property="schema:accessibilityFeature">unknown</meta>)
+      metadata << %(<meta property="schema:accessibilityHazard">none</meta>)
+      metadata << %(<meta property="schema:accessModeSufficient">textual</meta>)
+      metadata << %(<meta name="cover" content="cover-image"/>) if @cover_image_fname
 
       content = <<~XML
         <?xml version="1.0" encoding="utf-8"?>

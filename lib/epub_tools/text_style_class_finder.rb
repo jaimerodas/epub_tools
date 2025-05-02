@@ -1,23 +1,28 @@
 #!/usr/bin/env ruby
 require 'nokogiri'
 require 'yaml'
+require_relative 'loggable'
 
 module EpubTools
   # Finds css classes for bold and italic texts in Google Docs-generated EPUBs. Used by
   # {XHTMLCleaner}[rdoc-ref:EpubTools::XHTMLCleaner] and
   # {SplitChapters}[rdoc-ref:EpubTools::SplitChapters].
   class TextStyleClassFinder
-    # [file_path] XHTML file to be analyzed.
-    # [output_path] Defaults to +text_style_classes.yaml+. You should never need to change this.
-    # [verbose] Whether to print progress or not
-    def initialize(file_path:, output_path: 'text_style_classes.yaml', verbose: false)
-      @file_path = file_path
-      @output_path = output_path
-      @verbose = verbose
+    include Loggable
+    # Initializes the class
+    # @param options [Hash] Configuration options
+    # @option options [String] :file_path XHTML file to be analyzed (required)
+    # @option options [String] :output_path Path to write the YAML file (default: 'text_style_classes.yaml')
+    # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
+    def initialize(options = {})
+      @file_path = options.fetch(:file_path)
+      @output_path = options[:output_path] || 'text_style_classes.yaml'
+      @verbose = options[:verbose] || false
       raise ArgumentError, "File does not exist: #{@file_path}" unless File.exist?(@file_path)
     end
 
     # Runs the finder
+    # @return [Hash] Data containing the extracted style classes (italics and bolds)
     def run
       doc = Nokogiri::HTML(File.read(@file_path))
       style_blocks = doc.xpath('//style').map(&:text).join("\n")
@@ -28,10 +33,11 @@ module EpubTools
       print_summary(italics, bolds) if @verbose
 
       data = {
-        "italics" => italics,
-        "bolds"   => bolds
+        'italics' => italics,
+        'bolds' => bolds
       }
       File.write(@output_path, data.to_yaml)
+      data
     end
 
     private
@@ -42,13 +48,11 @@ module EpubTools
     end
 
     def print_summary(italics, bolds)
-      unless italics.empty?
-        puts "Classes with font-style: italic: #{italics.join(", ")}"
-      end
+      log "Classes with font-style: italic: #{italics.join(', ')}" unless italics.empty?
 
-      unless bolds.empty?
-        puts "Classes with font-weight: 700: #{bolds.join(", ")}"
-      end
+      return if bolds.empty?
+
+      log "Classes with font-weight: 700: #{bolds.join(', ')}"
     end
   end
 end

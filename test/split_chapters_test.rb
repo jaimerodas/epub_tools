@@ -27,7 +27,24 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def test_run_generates_chapter_files
-    EpubTools::SplitChapters.new(input_file: @input, book_title: 'BookTitle', output_dir: @out, output_prefix: 'chap').run
+    result = EpubTools::SplitChapters.new(input_file: @input, book_title: 'BookTitle', output_dir: @out,
+                                          output_prefix: 'chap').run
+
+    # Check return value is an array of chapter file paths
+    assert_instance_of Array, result
+    assert_equal 3, result.size
+
+    expected_paths = [
+      File.join(@out, 'chap_0.xhtml'),
+      File.join(@out, 'chap_1.xhtml'),
+      File.join(@out, 'chap_2.xhtml')
+    ]
+
+    expected_paths.each do |path|
+      assert_includes result, path
+      assert File.exist?(path), "Expected file #{path} to exist"
+    end
+
     files = Dir.children(@out)
     assert_includes files, 'chap_0.xhtml'
     assert_includes files, 'chap_1.xhtml'

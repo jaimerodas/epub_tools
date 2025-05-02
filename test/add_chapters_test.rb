@@ -54,7 +54,13 @@ class AddChaptersTest < Minitest::Test
 
   def test_run_moves_files_and_updates_opf_and_nav
     # Run the add chapters task
-    EpubTools::AddChapters.new(chapters_dir: @chapters_dir, epub_dir: @epub_dir).run
+    result = EpubTools::AddChapters.new(chapters_dir: @chapters_dir, epub_dir: @epub_dir).run
+
+    # Check return value is an array of moved file basenames
+    assert_instance_of Array, result
+    assert_equal 2, result.size
+    assert_includes result, 'chapter_0.xhtml'
+    assert_includes result, 'chapter_1.xhtml'
 
     # Original chapter files should be moved
     assert_empty Dir.glob(File.join(@chapters_dir, '*.xhtml'))
@@ -84,9 +90,9 @@ class AddChaptersTest < Minitest::Test
     assert_equal 2, links.size
     # First is Prologue (chapter_0)
     assert_equal 'chapter_0.xhtml', links[0]['href']
-    assert_equal 'Prologue',          links[0].text
+    assert_equal 'Prologue', links[0].text
     # Second is Chapter 1
     assert_equal 'chapter_1.xhtml', links[1]['href']
-    assert_equal 'Chapter 1',         links[1].text
+    assert_equal 'Chapter 1', links[1].text
   end
 end

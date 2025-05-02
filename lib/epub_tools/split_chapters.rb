@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'nokogiri'
 require 'yaml'
+require_relative 'loggable'
 require_relative 'text_style_class_finder'
 require_relative 'xhtml_cleaner'
 
@@ -13,20 +14,24 @@ module EpubTools
   #   {XHTMLCleaner}[rdoc-ref:EpubTools::XHTMLCleaner]
   # - Saves those files to +output_dir+
   class SplitChapters
-    # [input_file] path to the source XHTML
-    # [book_title] title to use in HTML <title> tags
-    # [output_dir] where to write chapter files
-    # [output_prefix] filename prefix. Defaults to 'chapter' and you should never need to change it
-    # [verbose] whether to print progress to STDOUT.
-    def initialize(input_file:, book_title:, output_dir: './chapters', output_prefix: 'chapter', verbose: false)
-      @input_file    = input_file
-      @book_title    = book_title
-      @output_dir    = output_dir
-      @output_prefix = output_prefix
-      @verbose       = verbose
+    include Loggable
+    # Initializes the class
+    # @param options [Hash] Configuration options
+    # @option options [String] :input_file Path to the source XHTML (required)
+    # @option options [String] :book_title Title to use in HTML <title> tags (required)
+    # @option options [String] :output_dir Where to write chapter files (default: './chapters')
+    # @option options [String] :output_prefix Filename prefix for chapter files (default: 'chapter')
+    # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
+    def initialize(options = {})
+      @input_file    = options.fetch(:input_file)
+      @book_title    = options.fetch(:book_title)
+      @output_dir    = options[:output_dir] || './chapters'
+      @output_prefix = options[:output_prefix] || 'chapter'
+      @verbose       = options[:verbose] || false
     end
 
     # Runs the splitter
+    # @return [Array<String>] List of generated chapter file paths
     def run
       # Prepare output dir
       Dir.mkdir(@output_dir) unless Dir.exist?(@output_dir)
@@ -36,7 +41,7 @@ module EpubTools
       doc = Nokogiri::HTML(raw_content)
 
       # Find Style Classes
-      TextStyleClassFinder.new(file_path: @input_file, verbose: @verbose).run
+      TextStyleClassFinder.new({ file_path: @input_file, verbose: @verbose }).run
 
       chapters = extract_chapters(doc)
       write_chapter_files(chapters)
@@ -45,7 +50,7 @@ module EpubTools
     private
 
     def read_and_strip_problematic_tags
-      File.read(@input_file).gsub(/<hr\b[^>]*\/?>/i, '').gsub(/<br\b[^>]*\/?>/i, '')
+      File.read(@input_file).gsub(%r{<hr\b[^>]*/?>}i, '').gsub(%r{<br\b[^>]*/?>}i, '')
     end
 
     def extract_chapters(doc)
@@ -74,9 +79,12 @@ module EpubTools
     end
 
     def write_chapter_files(chapters)
+      chapter_files = []
       chapters.each do |number, content|
-        write_chapter_file(number, content)
+        filename = write_chapter_file(number, content)
+        chapter_files << filename
       end
+      chapter_files
     end
 
     def write_chapter_file(label, content)
@@ -95,20 +103,21 @@ module EpubTools
           </body>
         </html>
       HTML
-      XHTMLCleaner.new(filename: filename).run
-      puts "Extracted: #{filename}" if @verbose
+      XHTMLCleaner.new({ filename: filename }).run
+      log("Extracted: #{filename}")
+      filename
     end
 
     def display_label(label)
-      label > 0 ? "Chapter #{label}" : "Prologue"
+      label > 0 ? "Chapter #{label}" : 'Prologue'
     end
 
     # Detect a bolded Prologue marker
     def prologue_marker?(node)
       return false unless %w[h3 h4].include?(node.name)
       return false unless node.text.strip =~ /\APrologue\z/i
+
       true
     end
-
   end
 end

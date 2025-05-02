@@ -1,16 +1,21 @@
 require 'zip'
 require 'fileutils'
+require_relative 'loggable'
 
 module EpubTools
   # Unpacks an EPUB (.epub file) into a directory
   class UnpackEbook
-    # [epub_file] path to the .epub file
-    # [output_dir] Directory to extract into; defaults to basename of epub_file without .epub
-    # [verbose] Whether to log things to $stdout while the class runs or not
-    def initialize(epub_file:, output_dir: nil, verbose: false)
-      @epub_file = File.expand_path(epub_file)
-      @output_dir = (output_dir.nil? || output_dir.empty?) ? default_dir: output_dir
-      @verbose = verbose
+    include Loggable
+    # Initializes the class
+    # @param options [Hash] Configuration options
+    # @option options [String] :epub_file Path to the .epub file to unpack (required)
+    # @option options [String] :output_dir Directory to extract into (default: basename of epub_file without .epub)
+    # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
+    def initialize(options = {})
+      @epub_file = File.expand_path(options.fetch(:epub_file))
+      output_dir = options[:output_dir]
+      @output_dir = output_dir.nil? || output_dir.empty? ? default_dir : output_dir
+      @verbose = options[:verbose] || false
     end
 
     # Extracts all entries from the EPUB into the output directory. Returns the output
@@ -29,20 +34,20 @@ module EpubTools
           end
         end
       end
-      puts "Unpacked #{File.basename(@epub_file)} to #{@output_dir}" if @verbose
+      log "Unpacked #{File.basename(@epub_file)} to #{@output_dir}"
       @output_dir
     end
 
     private
 
     def default_dir
-      [File.dirname(@epub_file), File.basename(@epub_file, '.epub')].join("/")
+      [File.dirname(@epub_file), File.basename(@epub_file, '.epub')].join('/')
     end
 
     def validate!
-      unless File.file?(@epub_file)
-        raise ArgumentError, "EPUB file '#{@epub_file}' does not exist"
-      end
+      return if File.file?(@epub_file)
+
+      raise ArgumentError, "EPUB file '#{@epub_file}' does not exist"
     end
   end
 end

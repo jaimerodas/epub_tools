@@ -1,4 +1,5 @@
 require_relative 'epub_tools/version'
+require_relative 'epub_tools/loggable'
 require_relative 'epub_tools/add_chapters'
 require_relative 'epub_tools/cli_helper'
 require_relative 'epub_tools/epub_initializer'
