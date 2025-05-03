@@ -1,16 +1,20 @@
  # EPUB Tools
 
-[![Build Status](https://github.com/jaimerodas/epub_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jaimerodas/epub_tools/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Build Status](https://github.com/jaimerodas/epub_tools/actions/workflows/ci.yml/badge.svg)](https://github.com/jaimerodas/epub_tools/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Gem Version](https://badge.fury.io/rb/epub_tools.svg)](https://badge.fury.io/rb/epub_tools)
 
 **TL;DR:** A Ruby gem and CLI for working with EPUB files: extract, split, initialize, add chapters, pack, and unpack EPUB books.
 
 ## Installation
-Install the gem via RubyGems:
+
+### Requirements
+- Ruby 3.2 or higher
+
+### Install from RubyGems
 ```bash
 gem install epub_tools
 ```
 
-Or build and install locally:
+### Build and install locally
 ```bash
 bundle install
 gem build epub_tools.gemspec
@@ -101,7 +105,7 @@ EpubTools::UnpackEbook.new('MyBook.epub', 'unpacked_dir').run
 ## Development & Testing
 Clone the repo and install dependencies:
 ```bash
-git clone <repo-url>
+git clone https://github.com/jaimerodas/epub_tools.git
 cd epub_tools
 bundle install
 ```
@@ -111,9 +115,9 @@ Run tests:
 bundle exec rake test
 ```
 
-Enable coverage reporting:
+Run linting (RuboCop):
 ```bash
-COVERAGE=true bundle exec rake test
+bundle exec rubocop
 ```
 ## Documentation
 
