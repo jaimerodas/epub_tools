@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'nokogiri'
 require 'yaml'
+require 'fileutils'
 require_relative 'loggable'
 require_relative 'style_finder'
 require_relative 'xhtml_cleaner'
@@ -34,7 +35,7 @@ module EpubTools
     # @return [Array<String>] List of generated chapter file paths
     def run
       # Prepare output dir
-      Dir.mkdir(@output_dir) unless Dir.exist?(@output_dir)
+      FileUtils.mkdir_p(@output_dir)
 
       # Read the doc
       raw_content = read_and_strip_problematic_tags

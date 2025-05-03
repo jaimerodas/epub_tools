@@ -10,6 +10,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_show_usage_with_no_args
     output = `#{@bin_path}`
+
     assert_match(/Usage: epub-tools COMMAND \[options\]/, output)
     assert_match(/Commands:/, output)
     assert_includes output, 'init'
@@ -23,14 +24,17 @@ class CLICommandsTest < Minitest::Test
 
   def test_show_version
     output = `#{@bin_path} --version`
+
     assert_match(/^\d+\.\d+\.\d+$/, output.strip)
 
     output = `#{@bin_path} -v`
+
     assert_match(/^\d+\.\d+\.\d+$/, output.strip)
   end
 
   def test_compile_command_requires_required_options
     output = `#{@bin_path} compile 2>&1`
+
     assert_match(/Missing required options/, output)
   end
 
@@ -38,6 +42,7 @@ class CLICommandsTest < Minitest::Test
     # Mock the execution - we won't actually run the full compile since it's complex
     # Instead we'll use the --help flag for each command to check it's available and formatted correctly
     output = `#{@bin_path} compile --help`
+
     assert_match(/Usage: epub-tools compile \[options\]/, output)
     assert_includes output, '--title TITLE'
     assert_includes output, '--author AUTHOR'
@@ -46,6 +51,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_extract_command
     output = `#{@bin_path} extract --help`
+
     assert_match(/Usage: epub-tools extract \[options\]/, output)
     assert_includes output, '--source-dir DIR'
     assert_includes output, '--target-dir DIR'
@@ -53,6 +59,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_split_command
     output = `#{@bin_path} split --help`
+
     assert_match(/Usage: epub-tools split \[options\]/, output)
     assert_includes output, '--input FILE'
     assert_includes output, '--title TITLE'
@@ -60,6 +67,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_init_command
     output = `#{@bin_path} init --help`
+
     assert_match(/Usage: epub-tools init \[options\]/, output)
     assert_includes output, '--title TITLE'
     assert_includes output, '--author AUTHOR'
@@ -68,6 +76,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_add_command
     output = `#{@bin_path} add --help`
+
     assert_match(/Usage: epub-tools add \[options\]/, output)
     assert_includes output, '--chapters-dir DIR'
     assert_includes output, '--epub-oebps-dir DIR'
@@ -75,6 +84,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_pack_command
     output = `#{@bin_path} pack --help`
+
     assert_match(/Usage: epub-tools pack \[options\]/, output)
     assert_includes output, '--input-dir DIR'
     assert_includes output, '--output-file FILE'
@@ -82,6 +92,7 @@ class CLICommandsTest < Minitest::Test
 
   def test_unpack_command
     output = `#{@bin_path} unpack --help`
+
     assert_match(/Usage: epub-tools unpack \[options\]/, output)
     assert_includes output, '--input-file FILE'
     assert_includes output, '--output-dir DIR'

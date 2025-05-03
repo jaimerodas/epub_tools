@@ -49,8 +49,8 @@ class UnpackEbookTest < Minitest::Test
     # Check extracted files
     assert Dir.exist?(@dest_dir)
     assert_equal 'application/epub+zip', File.read(File.join(@dest_dir, 'mimetype'))
-    assert File.exist?(File.join(@dest_dir, 'META-INF', 'container.xml'))
-    assert File.exist?(File.join(@dest_dir, 'OEBPS', 'title.xhtml'))
+    assert_path_exists File.join(@dest_dir, 'META-INF', 'container.xml')
+    assert_path_exists File.join(@dest_dir, 'OEBPS', 'title.xhtml')
   end
 
   def test_run_with_default_output_dir
@@ -58,9 +58,10 @@ class UnpackEbookTest < Minitest::Test
     result = EpubTools::UnpackEbook.new(epub_file: @epub_file).run
 
     expected_dir = File.join(File.dirname(@epub_file), File.basename(@epub_file, '.epub'))
+
     assert_equal expected_dir, result
     assert Dir.exist?(expected_dir)
-    assert File.exist?(File.join(expected_dir, 'mimetype'))
+    assert_path_exists File.join(expected_dir, 'mimetype')
   end
 
   def test_missing_epub_raises_error

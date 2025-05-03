@@ -35,10 +35,11 @@ class XHTMLExtractorTest < Minitest::Test
 
     expected_paths.each do |path|
       assert_includes result, path
-      assert File.exist?(path)
+      assert_path_exists path
     end
 
     files = Dir.children(@tgt)
+
     assert_includes files, 'sample_chapter1.xhtml'
     assert_includes files, 'sample_ch2.xhtml'
     refute_includes files, 'nav.xhtml'

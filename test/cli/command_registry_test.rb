@@ -30,6 +30,7 @@ class CommandRegistryTest < Minitest::Test
     assert_includes @registry.available_commands, 'test'
 
     command = @registry.get('test')
+
     assert_equal DummyCommand, command[:class]
     assert_equal [:required_option], command[:required_keys]
     assert_equal({ default: 'value' }, command[:default_options])

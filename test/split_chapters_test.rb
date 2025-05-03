@@ -42,28 +42,32 @@ class SplitChaptersTest < Minitest::Test
 
     expected_paths.each do |path|
       assert_includes result, path
-      assert File.exist?(path), "Expected file #{path} to exist"
+      assert_path_exists path, "Expected file #{path} to exist"
     end
 
     files = Dir.children(@out)
+
     assert_includes files, 'chap_0.xhtml'
     assert_includes files, 'chap_1.xhtml'
     assert_includes files, 'chap_2.xhtml'
 
     # Prologue
     prologue = File.read(File.join(@out, 'chap_0.xhtml'))
+
     assert_includes prologue, '<h1>Prologue</h1>'
     assert_includes prologue, 'Intro text'
     refute_includes prologue, 'Chapter 1'
 
     # Chapter 1
     ch1 = File.read(File.join(@out, 'chap_1.xhtml'))
+
     assert_includes ch1, '<h1>Chapter 1</h1>'
     assert_includes ch1, 'First paragraph'
     refute_includes ch1, 'Chapter 2'
 
     # Chapter 2
     ch2 = File.read(File.join(@out, 'chap_2.xhtml'))
+
     assert_includes ch2, '<h1>Chapter 2</h1>'
     assert_includes ch2, 'Second paragraph'
   end

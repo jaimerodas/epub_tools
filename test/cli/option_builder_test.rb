@@ -16,23 +16,26 @@ class OptionBuilderTest < Minitest::Test
 
   def test_with_banner
     @builder.with_banner('Test Banner')
+
     assert_equal 'Test Banner', @builder.parser.banner
   end
 
   def test_with_help_option
     # This test is tricky as --help would exit, so we'll test indirectly
     @builder.with_help_option
+
     assert_includes @builder.parser.to_s, '-h, --help'
   end
 
   def test_with_verbose_option
     @builder.with_verbose_option
 
-    assert_equal true, @builder.options[:verbose]
+    assert @builder.options[:verbose]
 
     # Parse args with --quiet to change verbose to false
     @builder.parse(['--quiet'])
-    assert_equal false, @builder.options[:verbose]
+
+    refute @builder.options[:verbose]
   end
 
   def test_with_input_file
@@ -44,11 +47,13 @@ class OptionBuilderTest < Minitest::Test
     # Test with required=false
     builder2 = EpubTools::CLI::OptionBuilder.new
     builder2.with_input_file('Test input', false)
+
     assert_includes builder2.parser.to_s, 'Test input'
     refute_includes builder2.parser.to_s, 'Test input (required)'
 
     # Test with actual parsing
     @builder.parse(['-i', 'file.txt'])
+
     assert_equal 'file.txt', @builder.options[:input_file]
   end
 
@@ -59,6 +64,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Test input dir (required)'
 
     @builder.parse(['-i', 'dir/path'])
+
     assert_equal 'dir/path', @builder.options[:input_dir]
   end
 
@@ -73,10 +79,12 @@ class OptionBuilderTest < Minitest::Test
     # Test without default
     builder2 = EpubTools::CLI::OptionBuilder.new
     builder2.with_output_dir('Test output dir')
+
     assert_includes builder2.parser.to_s, 'Test output dir (required)'
 
     # Test actual parsing
     @builder.parse(['-o', 'new/path'])
+
     assert_equal 'new/path', @builder.options[:output_dir]
   end
 
@@ -87,6 +95,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Test output file (required)'
 
     @builder.parse(['-o', 'output.txt'])
+
     assert_equal 'output.txt', @builder.options[:output_file]
   end
 
@@ -97,6 +106,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Book title (required)'
 
     @builder.parse(['-t', 'Book Title'])
+
     assert_equal 'Book Title', @builder.options[:title]
   end
 
@@ -107,6 +117,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Author name (required)'
 
     @builder.parse(['-a', 'Author Name'])
+
     assert_equal 'Author Name', @builder.options[:author]
   end
 
@@ -117,6 +128,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Cover image file path (optional)'
 
     @builder.parse(['-c', 'cover.jpg'])
+
     assert_equal 'cover.jpg', @builder.options[:cover_image]
   end
 
@@ -127,6 +139,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Extra option'
 
     @builder.parse(['-x', 'extra-value'])
+
     assert_equal 'extra-value', @builder.options[:extra_option]
   end
 
@@ -139,6 +152,7 @@ class OptionBuilderTest < Minitest::Test
     assert_includes @builder.parser.to_s, 'Custom option'
 
     @builder.parse(['-c', 'custom-value'])
+
     assert_equal 'custom-value', @builder.options[:custom]
   end
 

@@ -153,7 +153,7 @@ module EpubTools
         missing = @required_keys.select { |k| @options[k].nil? }
         return if missing.empty?
 
-        raise ArgumentError.new "Missing required options: #{missing_keys(missing)}"
+        raise ArgumentError, "Missing required options: #{missing_keys(missing)}"
       end
 
       def missing_keys(keys)

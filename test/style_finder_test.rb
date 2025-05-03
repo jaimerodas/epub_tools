@@ -24,6 +24,7 @@ class StyleFinder < Minitest::Test
   def test_finds_italic_and_bold_classes
     EpubTools::StyleFinder.new(file_path: @xhtml, output_path: @yaml).run
     data = YAML.load_file(@yaml)
+
     assert_equal ['c1'], data['italics']
     assert_equal ['c2'], data['bolds']
   end

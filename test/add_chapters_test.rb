@@ -64,8 +64,8 @@ class AddChaptersTest < Minitest::Test
 
     # Original chapter files should be moved
     assert_empty Dir.glob(File.join(@chapters_dir, '*.xhtml'))
-    assert File.exist?(File.join(@epub_dir, 'chapter_0.xhtml'))
-    assert File.exist?(File.join(@epub_dir, 'chapter_1.xhtml'))
+    assert_path_exists File.join(@epub_dir, 'chapter_0.xhtml')
+    assert_path_exists File.join(@epub_dir, 'chapter_1.xhtml')
 
     # package.opf should include manifest items and spine refs
     doc = Nokogiri::XML(File.read(@opf_file)) { |cfg| cfg.default_xml.noblanks }
@@ -87,6 +87,7 @@ class AddChaptersTest < Minitest::Test
     # strip namespaces for easy querying
     nav_doc.remove_namespaces!
     links = nav_doc.xpath('//nav/ol/li/a')
+
     assert_equal 2, links.size
     # First is Prologue (chapter_0)
     assert_equal 'chapter_0.xhtml', links[0]['href']

@@ -26,7 +26,7 @@ class PackEbookTest < Minitest::Test
 
     # Check return value is the output file path
     assert_equal output, result
-    assert File.exist?(output), 'Expected output EPUB to exist'
+    assert_path_exists output, 'Expected output EPUB to exist'
     entries = []
     Zip::File.open(output) do |zip|
       zip.each do |entry|
@@ -40,6 +40,7 @@ class PackEbookTest < Minitest::Test
 
     # Check presence of other files
     names = entries.map { |e| e[:name] }
+
     assert_includes names, 'META-INF/container.xml'
     assert_includes names, 'OEBPS/title.xhtml'
   end
@@ -68,6 +69,6 @@ class PackEbookTest < Minitest::Test
 
     # Check return value is the default output path
     assert_equal 'my_epub.epub', result
-    assert File.exist?(default_path), "Expected default EPUB at \\#{default_path}"
+    assert_path_exists default_path, "Expected default EPUB at \\#{default_path}"
   end
 end

@@ -46,6 +46,7 @@ class RunnerTest < Minitest::Test
 
   def test_handle_nonexistent_command
     result = @runner.handle_command('nonexistent')
+
     refute result # Should return false for nonexistent command
   end
 
@@ -63,6 +64,7 @@ class RunnerTest < Minitest::Test
 
   def test_program_name_defaults_to_current_program
     default_runner = EpubTools::CLI::Runner.new
+
     assert_equal File.basename($PROGRAM_NAME), default_runner.program_name
   end
 

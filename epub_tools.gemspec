@@ -14,13 +14,11 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 3.2'
   spec.metadata = {
     'source_code_uri' => 'https://github.com/jaimerodas/epub_tools/tree/main',
-    'homepage_uri' => 'https://github.com/jaimerodas/epub_tools'
+    'homepage_uri' => 'https://github.com/jaimerodas/epub_tools',
+    'rubygems_mfa_required' => 'true'
   }
 
   spec.add_dependency 'nokogiri', '~> 1.18'
   spec.add_dependency 'rake', '~> 13.2'
   spec.add_dependency 'rubyzip', '~> 2.4'
-
-  spec.add_development_dependency 'minitest', '~> 5.25'
-  spec.add_development_dependency 'simplecov', '~> 0'
 end

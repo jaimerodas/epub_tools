@@ -21,6 +21,7 @@ class CompileBookTest < Minitest::Test
       source_dir: @source,
       build_dir: @tmp
     )
+
     assert_equal 'My_Title.epub', cb.output_file
   end
 
@@ -32,6 +33,7 @@ class CompileBookTest < Minitest::Test
       output_file: 'custom.epub',
       build_dir: @tmp
     )
+
     assert_equal 'custom.epub', cb.output_file
   end
 
@@ -41,6 +43,7 @@ class CompileBookTest < Minitest::Test
       author: @author,
       source_dir: @source
     )
+
     assert cb.build_dir.end_with?('.epub_tools_build')
   end
 
@@ -54,6 +57,7 @@ class CompileBookTest < Minitest::Test
       build_dir: 'bd',
       verbose: false
     )
+
     assert_equal @title,       cb.title
     assert_equal @author,      cb.author
     assert_equal @source,      cb.source_dir
@@ -73,8 +77,10 @@ class CompileBookTest < Minitest::Test
       source_dir: @source,
       build_dir: build
     )
+
     assert Dir.exist?(build)
     cb.send(:clean_build_dir)
+
     refute Dir.exist?(build)
   end
 
@@ -89,6 +95,7 @@ class CompileBookTest < Minitest::Test
     cb.send(:prepare_dirs)
     xhtml_dir = cb.send(:xhtml_dir)
     chapters_dir = cb.send(:chapters_dir)
+
     assert Dir.exist?(xhtml_dir)
     assert Dir.exist?(chapters_dir)
   end
@@ -156,6 +163,7 @@ class CompileBookTest < Minitest::Test
     File.write(File.join(chapters, 'chap_1.xhtml'), '')
     File.write(File.join(chapters, 'chap_2.xhtml'), '')
     File.write(File.join(chapters, 'chap_3.xhtml'), '')
+
     assert_nil cb.send(:validate_sequence)
   end
 
@@ -184,8 +192,9 @@ class CompileBookTest < Minitest::Test
       [:log, /Done\. Output EPUB: .*o\.epub/],
       :clean
     ]
+
     assert_equal expected[0..7], seq[0..7]
-    assert seq[8].is_a?(Array)
+    assert_kind_of Array, seq[8]
     assert_equal :log, seq[8][0]
     assert_match expected[8][1], seq[8][1]
     assert_equal expected[9], seq[9]

@@ -32,9 +32,10 @@ class XHTMLCleanerTest < Minitest::Test
 
     # Check return value is the filename that was cleaned
     assert_equal @file, result
-    assert File.exist?(@file)
+    assert_path_exists @file
 
     content = File.read(@file)
+
     assert_includes content, '<i>ItalicsOnly</i>'
     assert_includes content, 'KeepThis'
     refute_includes content, '<span'
