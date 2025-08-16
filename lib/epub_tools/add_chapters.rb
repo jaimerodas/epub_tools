@@ -18,7 +18,7 @@ module EpubTools
     # @option options [Boolean] :verbose Whether to log progress to STDOUT (default: false)
     def initialize(options = {})
       @chapters_dir = File.expand_path(options[:chapters_dir] || './chapters')
-      @epub_dir = File.expand_path(options[:epub_dir] || './epub/OEBPS')
+      @epub_dir = File.expand_path(options[:oebps_dir] || './epub/OEBPS')
       @opf_file = File.join(@epub_dir, 'package.opf')
       @nav_file = File.join(@epub_dir, 'nav.xhtml')
       @verbose = options[:verbose] || false

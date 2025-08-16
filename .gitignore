@@ -7,3 +7,5 @@ vendor/bundle/
 *.gem
 
 text_style_classes.yaml
+
+**/.claude/

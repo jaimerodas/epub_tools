@@ -13,7 +13,7 @@ module EpubTools
 
       # Register all commands
       runner.registry.register('add', EpubTools::AddChapters,
-                               %i[chapters_dir epub_oebps_dir])
+                               %i[chapters_dir oebps_dir])
 
       runner.registry.register('extract', EpubTools::XHTMLExtractor,
                                %i[source_dir target_dir],

@@ -79,7 +79,7 @@ class CLICommandsTest < Minitest::Test
 
     assert_match(/Usage: epub-tools add \[options\]/, output)
     assert_includes output, '--chapters-dir DIR'
-    assert_includes output, '--epub-oebps-dir DIR'
+    assert_includes output, '--oebps-dir DIR'
   end
 
   def test_pack_command

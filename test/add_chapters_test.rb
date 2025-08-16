@@ -54,7 +54,7 @@ class AddChaptersTest < Minitest::Test
 
   def test_run_moves_files_and_updates_opf_and_nav
     # Run the add chapters task
-    result = EpubTools::AddChapters.new(chapters_dir: @chapters_dir, epub_dir: @epub_dir).run
+    result = EpubTools::AddChapters.new(chapters_dir: @chapters_dir, oebps_dir: @epub_dir).run
 
     # Check return value is an array of moved file basenames
     assert_instance_of Array, result

@@ -80,7 +80,7 @@ class RunnerTest < Minitest::Test
 
     # Check add command options were added
     assert_includes builder.parser.to_s, '--chapters-dir DIR'
-    assert_includes builder.parser.to_s, '--epub-oebps-dir DIR'
+    assert_includes builder.parser.to_s, '--oebps-dir DIR'
   end
 
   def test_run_with_unknown_command

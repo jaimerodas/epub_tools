@@ -86,8 +86,8 @@ module EpubTools
         when 'add'
           builder.with_custom_options do |opts, options|
             opts.on('-c DIR', '--chapters-dir DIR', 'Chapters directory (required)') { |v| options[:chapters_dir] = v }
-            opts.on('-e DIR', '--epub-oebps-dir DIR', 'EPUB OEBPS directory (required)') do |v|
-              options[:epub_oebps_dir] = v
+            opts.on('-e DIR', '--oebps-dir DIR', 'EPUB OEBPS directory (required)') do |v|
+              options[:oebps_dir] = v
             end
           end
 
