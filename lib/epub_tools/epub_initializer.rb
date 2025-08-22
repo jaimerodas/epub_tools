@@ -142,8 +142,18 @@ module EpubTools
 
     # Generates the package.opf with optional cover image entries
     def write_package_opf
+      manifest_items, spine_items = build_manifest_and_spine
+      metadata = build_metadata
+      content = build_opf_xml(metadata, manifest_items, spine_items)
+      File.write(File.join(@destination, 'OEBPS', 'package.opf'), content)
+    end
+
+    private
+
+    def build_manifest_and_spine
       manifest_items = []
       spine_items = []
+      
       manifest_items << mitem('style', 'style.css', 'text/css')
       manifest_items << mitem('nav', 'nav.xhtml', 'application/xhtml+xml', 'nav')
 
@@ -155,7 +165,11 @@ module EpubTools
 
       manifest_items << mitem('title', 'title.xhtml', 'application/xhtml+xml')
       spine_items << '<itemref idref="title"/>'
+      
+      [manifest_items, spine_items]
+    end
 
+    def build_metadata
       metadata = []
       metadata << %(<dc:identifier id="pub-id">#{@uuid}</dc:identifier>)
       metadata << %(<dc:title>#{@title}</dc:title>)
@@ -167,8 +181,11 @@ module EpubTools
       metadata << %(<meta property="schema:accessibilityHazard">none</meta>)
       metadata << %(<meta property="schema:accessModeSufficient">textual</meta>)
       metadata << %(<meta name="cover" content="cover-image"/>) if @cover_image_fname
+      metadata
+    end
 
-      content = <<~XML
+    def build_opf_xml(metadata, manifest_items, spine_items)
+      <<~XML
         <?xml version="1.0" encoding="utf-8"?>
         <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="en">
           <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -182,8 +199,6 @@ module EpubTools
           </spine>
         </package>
       XML
-
-      File.write(File.join(@destination, 'OEBPS', 'package.opf'), content)
     end
 
     # Generates the initial navigation document (Table of Contents)

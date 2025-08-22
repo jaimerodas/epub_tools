@@ -107,19 +107,25 @@ module EpubTools
       doc = Nokogiri::XML(File.read(@nav_file)) { |config| config.default_xml.noblanks }
       nav = doc.at_xpath('//xmlns:nav[@epub:type="toc"]/xmlns:ol')
 
-      filenames.each do |filename|
-        # Create a new <li><a href="...">Label</a></li> element
-        label = File.basename(filename, '.xhtml').gsub('_', ' ').capitalize
-        label = 'Prologue' if label == 'Chapter 0'
-        li = Nokogiri::XML::Node.new('li', doc)
-        a  = Nokogiri::XML::Node.new('a', doc)
-        a['href'] = filename
-        a.content = label
-        li.add_child(a)
-        nav.add_child(li)
-      end
+      filenames.each { |filename| nav.add_child(create_nav_link(doc, filename)) }
 
       File.write(@nav_file, doc.to_xml(indent: 2))
+    end
+
+    private
+
+    def create_nav_link(doc, filename)
+      li = Nokogiri::XML::Node.new('li', doc)
+      a = Nokogiri::XML::Node.new('a', doc)
+      a['href'] = filename
+      a.content = format_chapter_label(filename)
+      li.add_child(a)
+      li
+    end
+
+    def format_chapter_label(filename)
+      label = File.basename(filename, '.xhtml').gsub('_', ' ').capitalize
+      label == 'Chapter 0' ? 'Prologue' : label
     end
   end
 end
