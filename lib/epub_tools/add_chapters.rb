@@ -81,24 +81,7 @@ module EpubTools
       manifest = doc.at_xpath('//xmlns:manifest')
       spine = doc.at_xpath('//xmlns:spine')
 
-      filenames.each do |filename|
-        id = chapter_id(filename)
-        # Add <item> to the manifest if missing
-        unless doc.at_xpath("//xmlns:item[@href='#{filename}']")
-          item = Nokogiri::XML::Node.new('item', doc)
-          item['id'] = id
-          item['href'] = filename
-          item['media-type'] = 'application/xhtml+xml'
-          manifest.add_child(item)
-        end
-
-        # Add <itemref> to the spine if missing
-        next if doc.at_xpath("//xmlns:itemref[@idref='#{id}']")
-
-        itemref = Nokogiri::XML::Node.new('itemref', doc)
-        itemref['idref'] = id
-        spine.add_child(itemref)
-      end
+      filenames.each { |filename| update_opf_for_file(doc, manifest, spine, filename) }
 
       File.write(@opf_file, doc.to_xml(indent: 2))
     end
@@ -126,6 +109,34 @@ module EpubTools
     def format_chapter_label(filename)
       label = File.basename(filename, '.xhtml').gsub('_', ' ').capitalize
       label == 'Chapter 0' ? 'Prologue' : label
+    end
+
+    def update_opf_for_file(doc, manifest, spine, filename)
+      id = chapter_id(filename)
+      add_manifest_item(doc, manifest, filename, id) unless manifest_item_exists?(doc, filename)
+      add_spine_itemref(doc, spine, id) unless spine_itemref_exists?(doc, id)
+    end
+
+    def manifest_item_exists?(doc, filename)
+      doc.at_xpath("//xmlns:item[@href='#{filename}']")
+    end
+
+    def spine_itemref_exists?(doc, id)
+      doc.at_xpath("//xmlns:itemref[@idref='#{id}']")
+    end
+
+    def add_manifest_item(doc, manifest, filename, id)
+      item = Nokogiri::XML::Node.new('item', doc)
+      item['id'] = id
+      item['href'] = filename
+      item['media-type'] = 'application/xhtml+xml'
+      manifest.add_child(item)
+    end
+
+    def add_spine_itemref(doc, spine, id)
+      itemref = Nokogiri::XML::Node.new('itemref', doc)
+      itemref['idref'] = id
+      spine.add_child(itemref)
     end
   end
 end

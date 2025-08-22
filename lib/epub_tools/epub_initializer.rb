@@ -93,25 +93,41 @@ module EpubTools
 
     # Copies the cover image into the EPUB structure and creates a cover.xhtml page
     def write_cover
-      path = @cover_image_path
-      unless File.exist?(path)
-        warn "Warning: cover image '#{path}' not found; skipping cover support."
-        return
+      return unless validate_cover_image_exists
+      
+      ext = File.extname(@cover_image_path).downcase
+      @cover_image_media_type = determine_media_type(ext)
+      return unless @cover_image_media_type
+      
+      copy_cover_image(ext)
+      write_cover_page
+    end
+
+    private
+
+    def validate_cover_image_exists
+      return true if File.exist?(@cover_image_path)
+      
+      warn "Warning: cover image '#{@cover_image_path}' not found; skipping cover support."
+      false
+    end
+
+    def determine_media_type(ext)
+      case ext
+      when '.jpg', '.jpeg' then 'image/jpeg'
+      when '.png' then 'image/png'
+      when '.gif' then 'image/gif'
+      when '.svg' then 'image/svg+xml'
+      else
+        warn "Warning: unsupported cover image type '#{ext}'; skipping cover support."
+        nil
       end
-      ext = File.extname(path).downcase
-      @cover_image_media_type = case ext
-                                when '.jpg', '.jpeg' then 'image/jpeg'
-                                when '.png' then 'image/png'
-                                when '.gif' then 'image/gif'
-                                when '.svg' then 'image/svg+xml'
-                                else
-                                  warn "Warning: unsupported cover image type '#{ext}'; skipping cover support."
-                                  return
-                                end
+    end
+
+    def copy_cover_image(ext)
       @cover_image_fname = "cover#{ext}"
       dest = File.join(@destination, 'OEBPS', @cover_image_fname)
-      FileUtils.cp(path, dest)
-      write_cover_page
+      FileUtils.cp(@cover_image_path, dest)
     end
 
     # Generates a cover.xhtml file displaying the cover image
