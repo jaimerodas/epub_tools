@@ -47,7 +47,7 @@ class OptionBuilderTest < Minitest::Test
 
     # Test with required=false
     builder2 = EpubTools::CLI::OptionBuilder.new
-    builder2.with_input_file('Test input', false)
+    builder2.with_input_file('Test input', required: false)
 
     assert_includes builder2.parser.to_s, 'Test input'
     refute_includes builder2.parser.to_s, 'Test input (required)'

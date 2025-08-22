@@ -32,8 +32,6 @@ Metrics/CyclomaticComplexity:
 Metrics/PerceivedComplexity:
   Enabled: false
 
-Style/OptionalBooleanParameter:
-  Enabled: false
 
 Minitest/MultipleAssertions:
   Enabled: false

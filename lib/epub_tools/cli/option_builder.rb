@@ -46,7 +46,7 @@ module EpubTools
       # @param description [String] Option description
       # @param required [Boolean] Whether this option is required
       # @return [self] for method chaining
-      def with_input_file(description = 'Input file', required = true)
+      def with_input_file(description = 'Input file', required: true)
         desc = required ? "#{description} (required)" : description
         @parser.on('-i FILE', '--input-file FILE', desc) { |v| @options[:input_file] = v }
         self
@@ -56,7 +56,7 @@ module EpubTools
       # @param description [String] Option description
       # @param required [Boolean] Whether this option is required
       # @return [self] for method chaining
-      def with_input_dir(description = 'Input directory', required = true)
+      def with_input_dir(description = 'Input directory', required: true)
         desc = required ? "#{description} (required)" : description
         @parser.on('-i DIR', '--input-dir DIR', desc) { |v| @options[:input_dir] = v }
         self
@@ -81,7 +81,7 @@ module EpubTools
       # @param description [String] Option description
       # @param required [Boolean] Whether this option is required
       # @return [self] for method chaining
-      def with_output_file(description = 'Output file', required = true)
+      def with_output_file(description = 'Output file', required: true)
         desc = required ? "#{description} (required)" : description
         @parser.on('-o FILE', '--output-file FILE', desc) { |v| @options[:output_file] = v }
         self
