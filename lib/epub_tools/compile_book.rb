@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 require 'fileutils'
 require_relative 'loggable'
 require_relative 'xhtml_extractor'

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'epub_tools/version'
 require_relative 'epub_tools/loggable'
 require_relative 'epub_tools/add_chapters'

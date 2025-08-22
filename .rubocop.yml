@@ -16,8 +16,6 @@ plugins:
   - rubocop-minitest
   - rubocop-rake
 
-Style/FrozenStringLiteralComment:
-  Enabled: false
 
 Metrics/MethodLength:
   Enabled: false

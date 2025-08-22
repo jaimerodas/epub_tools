@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'cli/command_registry'
 require_relative 'cli/option_builder'
 require_relative 'cli/runner'

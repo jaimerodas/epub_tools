@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'command_registry'
 require_relative 'option_builder'
 
