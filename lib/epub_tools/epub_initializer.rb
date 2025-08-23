@@ -5,6 +5,9 @@ require 'fileutils'
 require 'time'
 require 'securerandom'
 require_relative 'loggable'
+require_relative 'xhtml_generator'
+require_relative 'epub_metadata_builder'
+require_relative 'epub_file_writer'
 
 module EpubTools
   # Sets up a basic empty EPUB directory structure with the basic files created:
@@ -35,65 +38,35 @@ module EpubTools
       @cover_image_fname = nil
       @cover_image_media_type = nil
       @verbose = options[:verbose] || false
+      @xhtml_generator = XhtmlGenerator.new(title: @title, author: @author)
+      @metadata_builder = EpubMetadataBuilder.new(
+        title: @title, 
+        author: @author, 
+        uuid: @uuid, 
+        modified: @modified
+      )
+      @file_writer = EpubFileWriter.new(@destination)
     end
 
     # Creates the empty ebook and returns the directory
     def run
-      create_structure
-      write_mimetype
+      @file_writer.create_structure
+      @file_writer.write_mimetype
       write_title_page
-      write_container
+      @file_writer.write_container
       write_cover if @cover_image_path
       write_package_opf
       write_nav
-      write_style
+      @file_writer.write_style
       log "Created empty ebook structure at: #{@destination}"
       @destination
     end
 
     private
 
-    def create_structure
-      FileUtils.mkdir_p("#{@destination}/META-INF")
-      FileUtils.mkdir_p("#{@destination}/OEBPS")
-    end
-
-    def write_mimetype
-      File.write("#{@destination}/mimetype", 'application/epub+zip')
-    end
-
     def write_title_page
-      content = build_title_xhtml_template
-      File.write("#{@destination}/OEBPS/title.xhtml", content)
-    end
-
-    def build_title_xhtml_template
-      <<~XHTML
-        <?xml version="1.0" encoding="UTF-8"?>
-        <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <title>#{@title}</title>
-            <link rel="stylesheet" type="text/css" href="style.css"/>
-          </head>
-          <body>
-            <h1 class="title">#{@title}</h1>
-            <p class="author">by #{@author}</p>
-          </body>
-        </html>
-      XHTML
-    end
-
-    def write_container
-      content = <<~XML
-        <?xml version="1.0" encoding="UTF-8"?>
-        <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-          <rootfiles>
-            <rootfile full-path="OEBPS/package.opf" media-type="application/oebps-package+xml"/>
-          </rootfiles>
-        </container>
-      XML
-      File.write("#{@destination}/META-INF/container.xml", content)
+      content = @xhtml_generator.build_title_page
+      @file_writer.write_xhtml('title.xhtml', content)
     end
 
     # Copies the cover image into the EPUB structure and creates a cover.xhtml page
@@ -104,6 +77,10 @@ module EpubTools
       @cover_image_media_type = determine_media_type(ext)
       return unless @cover_image_media_type
 
+      @cover_image_fname = "cover#{ext}"
+      @xhtml_generator.cover_image_fname = @cover_image_fname
+      update_metadata_builder_with_cover_info
+      
       copy_cover_image(ext)
       write_cover_page
     end
@@ -127,154 +104,40 @@ module EpubTools
       end
     end
 
+    def update_metadata_builder_with_cover_info
+      @metadata_builder = EpubMetadataBuilder.new(
+        title: @title, 
+        author: @author, 
+        uuid: @uuid, 
+        modified: @modified,
+        cover_image_fname: @cover_image_fname,
+        cover_image_media_type: @cover_image_media_type
+      )
+    end
+
     def copy_cover_image(ext)
-      @cover_image_fname = "cover#{ext}"
       dest = File.join(@destination, 'OEBPS', @cover_image_fname)
       FileUtils.cp(@cover_image_path, dest)
     end
 
     # Generates a cover.xhtml file displaying the cover image
     def write_cover_page
-      content = build_cover_xhtml_template
-      File.write(File.join(@destination, 'OEBPS', 'cover.xhtml'), content)
-    end
-
-    def build_cover_xhtml_template
-      <<~XHTML
-        <?xml version="1.0" encoding="UTF-8"?>
-        <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <title>Cover</title>
-            <link rel="stylesheet" type="text/css" href="style.css"/>
-          </head>
-          <body>
-            <div class="cover-image">
-              <img src="#{@cover_image_fname}" alt="Cover"/>
-            </div>
-          </body>
-        </html>
-      XHTML
-    end
-
-    def mitem(id, href, type, properties = nil)
-      xml = "<item id=\"#{id}\" href=\"#{href}\" media-type=\"#{type}\""
-      xml += " properties=\"#{properties}\"" if properties
-      "#{xml}/>"
+      content = @xhtml_generator.build_cover_page
+      @file_writer.write_xhtml('cover.xhtml', content)
     end
 
     # Generates the package.opf with optional cover image entries
     def write_package_opf
-      manifest_items, spine_items = build_manifest_and_spine
-      metadata = build_metadata
-      content = build_opf_xml(metadata, manifest_items, spine_items)
-      File.write(File.join(@destination, 'OEBPS', 'package.opf'), content)
-    end
-
-    def build_manifest_and_spine
-      manifest_items = []
-      spine_items = []
-
-      add_base_manifest_items(manifest_items)
-      add_cover_items(manifest_items, spine_items) if @cover_image_fname
-      add_title_items(manifest_items, spine_items)
-
-      [manifest_items, spine_items]
-    end
-
-    def add_base_manifest_items(manifest_items)
-      manifest_items << mitem('style', 'style.css', 'text/css')
-      manifest_items << mitem('nav', 'nav.xhtml', 'application/xhtml+xml', 'nav')
-    end
-
-    def add_cover_items(manifest_items, spine_items)
-      manifest_items << mitem('cover-image', @cover_image_fname, @cover_image_media_type, 'cover-image')
-      manifest_items << mitem('cover-page', 'cover.xhtml', 'application/xhtml+xml')
-      spine_items << '<itemref idref="cover-page"/>'
-    end
-
-    def add_title_items(manifest_items, spine_items)
-      manifest_items << mitem('title', 'title.xhtml', 'application/xhtml+xml')
-      spine_items << '<itemref idref="title"/>'
-    end
-
-    def build_metadata
-      metadata = []
-      add_dublin_core_metadata(metadata)
-      add_schema_metadata(metadata)
-      add_cover_metadata(metadata) if @cover_image_fname
-      metadata
-    end
-
-    def add_dublin_core_metadata(metadata)
-      metadata << %(<dc:identifier id="pub-id">#{@uuid}</dc:identifier>)
-      metadata << %(<dc:title>#{@title}</dc:title>)
-      metadata << %(<dc:creator>#{@author}</dc:creator>)
-      metadata << '<dc:language>en</dc:language>'
-      metadata << %(<meta property="dcterms:modified">#{@modified}</meta>)
-    end
-
-    def add_schema_metadata(metadata)
-      metadata << %(<meta property="schema:accessMode">textual</meta>)
-      metadata << %(<meta property="schema:accessibilityFeature">unknown</meta>)
-      metadata << %(<meta property="schema:accessibilityHazard">none</meta>)
-      metadata << %(<meta property="schema:accessModeSufficient">textual</meta>)
-    end
-
-    def add_cover_metadata(metadata)
-      metadata << %(<meta name="cover" content="cover-image"/>)
-    end
-
-    def build_opf_xml(metadata, manifest_items, spine_items)
-      <<~XML
-        <?xml version="1.0" encoding="utf-8"?>
-        <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="en">
-          <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-        #{metadata.map { |line| "    #{line}" }.join("\n")}
-          </metadata>
-          <manifest>
-        #{manifest_items.map { |line| "    #{line}" }.join("\n")}
-          </manifest>
-          <spine>
-        #{spine_items.map { |line| "    #{line}" }.join("\n")}
-          </spine>
-        </package>
-      XML
+      manifest_items, spine_items = @metadata_builder.build_manifest_and_spine
+      metadata = @metadata_builder.build_metadata
+      content = @metadata_builder.build_opf_xml(metadata, manifest_items, spine_items)
+      @file_writer.write_package_opf(content)
     end
 
     # Generates the initial navigation document (Table of Contents)
     def write_nav
-      content = build_nav_xhtml_template
-      File.write(File.join(@destination, 'OEBPS', 'nav.xhtml'), content)
-    end
-
-    def build_nav_xhtml_template
-      <<~XHTML
-        <?xml version="1.0" encoding="utf-8"?>
-        <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
-          <head>
-            <title>Table of Contents</title>
-          </head>
-          <body>
-            <nav epub:type="toc" id="toc">
-              <h1>Table of Contents</h1>
-              <ol>
-                <li><a href="title.xhtml">Title Page</a></li>
-              </ol>
-            </nav>
-          </body>
-        </html>
-      XHTML
-    end
-
-    def write_style
-      src = File.join(Dir.pwd, 'style.css')
-      dest = File.join(@destination, 'OEBPS', 'style.css')
-      unless File.exist?(src)
-        warn "Warning: style.css not found in project root (#{src}), skipping copy."
-        return
-      end
-      FileUtils.cp(src, dest)
+      content = @xhtml_generator.build_nav_page
+      @file_writer.write_xhtml('nav.xhtml', content)
     end
   end
 end
