@@ -2,12 +2,11 @@
 # frozen_string_literal: true
 
 require 'fileutils'
-require 'time'
-require 'securerandom'
 require_relative 'loggable'
 require_relative 'xhtml_generator'
 require_relative 'epub_metadata_builder'
 require_relative 'epub_file_writer'
+require_relative 'epub_configuration'
 
 module EpubTools
   # Sets up a basic empty EPUB directory structure with the basic files created:
@@ -29,24 +28,28 @@ module EpubTools
     # @option options [String] :cover_image Optional path to the cover image
     # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
     def initialize(options = {})
-      @title = options.fetch(:title)
-      @author = options.fetch(:author)
-      @destination = File.expand_path(options.fetch(:destination))
-      @uuid = "urn:uuid:#{SecureRandom.uuid}"
-      @modified = Time.now.utc.iso8601
-      @cover_image_path = options[:cover_image]
-      @cover_image_fname = nil
-      @cover_image_media_type = nil
-      @verbose = options[:verbose] || false
-      @xhtml_generator = XhtmlGenerator.new(title: @title, author: @author)
-      @metadata_builder = EpubMetadataBuilder.new(
-        title: @title, 
-        author: @author, 
-        uuid: @uuid, 
-        modified: @modified
-      )
-      @file_writer = EpubFileWriter.new(@destination)
+      @config = EpubConfiguration.new(options)
+      @verbose = @config.verbose
+      @xhtml_generator = create_xhtml_generator
+      @metadata_builder = create_metadata_builder
+      @file_writer = create_file_writer
     end
+
+    private
+
+    def create_xhtml_generator
+      XhtmlGenerator.new(title: @config.title, author: @config.author)
+    end
+
+    def create_metadata_builder
+      EpubMetadataBuilder.new(@config)
+    end
+
+    def create_file_writer
+      EpubFileWriter.new(@config.destination)
+    end
+
+    public
 
     # Creates the empty ebook and returns the directory
     def run
@@ -54,12 +57,12 @@ module EpubTools
       @file_writer.write_mimetype
       write_title_page
       @file_writer.write_container
-      write_cover if @cover_image_path
+      write_cover if @config.cover_image_path
       write_package_opf
       write_nav
       @file_writer.write_style
-      log "Created empty ebook structure at: #{@destination}"
-      @destination
+      log "Created empty ebook structure at: #{@config.destination}"
+      @config.destination
     end
 
     private
@@ -73,22 +76,23 @@ module EpubTools
     def write_cover
       return unless cover_image_exists?
 
-      ext = File.extname(@cover_image_path).downcase
-      @cover_image_media_type = determine_media_type(ext)
-      return unless @cover_image_media_type
+      ext = File.extname(@config.cover_image_path).downcase
+      media_type = determine_media_type(ext)
+      return unless media_type
 
-      @cover_image_fname = "cover#{ext}"
-      @xhtml_generator.cover_image_fname = @cover_image_fname
+      fname = "cover#{ext}"
+      @config.update_cover_info(fname, media_type)
+      @xhtml_generator.cover_image_fname = fname
       update_metadata_builder_with_cover_info
-      
+
       copy_cover_image(ext)
       write_cover_page
     end
 
     def cover_image_exists?
-      return true if File.exist?(@cover_image_path)
+      return true if File.exist?(@config.cover_image_path)
 
-      warn "Warning: cover image '#{@cover_image_path}' not found; skipping cover support."
+      warn "Warning: cover image '#{@config.cover_image_path}' not found; skipping cover support."
       false
     end
 
@@ -105,19 +109,12 @@ module EpubTools
     end
 
     def update_metadata_builder_with_cover_info
-      @metadata_builder = EpubMetadataBuilder.new(
-        title: @title, 
-        author: @author, 
-        uuid: @uuid, 
-        modified: @modified,
-        cover_image_fname: @cover_image_fname,
-        cover_image_media_type: @cover_image_media_type
-      )
+      @metadata_builder = EpubMetadataBuilder.new(@config)
     end
 
-    def copy_cover_image(ext)
-      dest = File.join(@destination, 'OEBPS', @cover_image_fname)
-      FileUtils.cp(@cover_image_path, dest)
+    def copy_cover_image(_ext)
+      dest = File.join(@config.destination, 'OEBPS', @config.cover_image_fname)
+      FileUtils.cp(@config.cover_image_path, dest)
     end
 
     # Generates a cover.xhtml file displaying the cover image

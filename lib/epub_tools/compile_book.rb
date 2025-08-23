@@ -8,6 +8,8 @@ require_relative 'split_chapters'
 require_relative 'epub_initializer'
 require_relative 'add_chapters'
 require_relative 'pack_ebook'
+require_relative 'compile_workspace'
+require_relative 'chapter_validator'
 
 module EpubTools
   # Orchestrates extraction, splitting, validation, and packaging of book EPUBs
@@ -46,63 +48,56 @@ module EpubTools
       @output_file = options[:output_file] || default_output_file
       @build_dir   = options[:build_dir] || File.join(Dir.pwd, '.epub_tools_build')
       @verbose     = options[:verbose] || false
+      @workspace   = CompileWorkspace.new(@build_dir)
     end
 
     # Run the full compile workflow
     def run
-      clean_build_dir
-      prepare_dirs
-      extract_xhtmls
-      split_xhtmls
-      validate_sequence
-      initialize_epub
-      add_chapters
-      pack_epub
-      log "Done. Output EPUB: #{File.expand_path(output_file)}"
-      clean_build_dir
+      prepare_workspace
+      execute_workflow
+      finalize_output
     end
 
     private
 
+    def prepare_workspace
+      @workspace.clean
+      log "Cleaning build directory #{@build_dir}..."
+      @workspace.prepare_directories
+      log 'Preparing build directories...'
+    end
+
+    def execute_workflow
+      extract_xhtmls
+      split_xhtmls
+      validate_chapters
+      initialize_epub
+      add_chapters
+      pack_epub
+    end
+
+    def finalize_output
+      log "Done. Output EPUB: #{File.expand_path(output_file)}"
+      @workspace.clean
+      output_file
+    end
+
     def default_output_file
       "#{title.gsub(' ', '_')}.epub"
-    end
-
-    def clean_build_dir
-      log "Cleaning build directory #{build_dir}..."
-      FileUtils.rm_rf(build_dir)
-    end
-
-    def prepare_dirs
-      log 'Preparing build directories...'
-      FileUtils.mkdir_p(xhtml_dir)
-      FileUtils.mkdir_p(chapters_dir)
-    end
-
-    def xhtml_dir
-      @xhtml_dir ||= File.join(build_dir, 'xhtml')
-    end
-
-    def chapters_dir
-      @chapters_dir ||= File.join(build_dir, 'chapters')
-    end
-
-    def epub_dir
-      @epub_dir ||= File.join(build_dir, 'epub')
     end
 
     def extract_xhtmls
       log "Extracting XHTML files from epubs in '#{source_dir}'..."
       XHTMLExtractor.new({
                            source_dir: source_dir,
-                           target_dir: xhtml_dir,
+                           target_dir: @workspace.xhtml_dir,
                            verbose: verbose
                          }).run
     end
 
     def split_xhtmls
       log 'Splitting XHTML files into chapters...'
-      Dir.glob(File.join(xhtml_dir, '*.xhtml')).each do |xhtml_file|
+      Dir.glob(File.join(@workspace.xhtml_dir, '*.xhtml')).each do |xhtml_file|
         split_xhtml_file(xhtml_file)
       end
     end
@@ -117,33 +112,14 @@ module EpubTools
       {
         input_file: xhtml_file,
         book_title: title,
-        output_dir: chapters_dir,
+        output_dir: @workspace.chapters_dir,
         output_prefix: 'chapter',
         verbose: verbose
       }
     end
 
-    def validate_sequence
-      log 'Validating chapter sequence...'
-      nums = extract_chapter_numbers
-      check_sequence_completeness(nums)
-      log "Chapter sequence is complete: #{nums.first} to #{nums.last}."
-    end
-
-    def extract_chapter_numbers
-      nums = Dir.glob(File.join(chapters_dir, '*.xhtml')).map do |file|
-        if (m = File.basename(file, '.xhtml').match(/_(\d+)\z/))
-          m[1].to_i
-        end
-      end.compact
-      raise "No chapter files found in #{chapters_dir}" if nums.empty?
-
-      nums.sort.uniq
-    end
-
-    def check_sequence_completeness(sorted)
-      missing = (sorted.first..sorted.last).to_a - sorted
-      raise "Missing chapter numbers: #{missing.join(' ')}" if missing.any?
+    def validate_chapters
+      ChapterValidator.new(chapters_dir: @workspace.chapters_dir, verbose: verbose).validate
     end
 
     def initialize_epub
@@ -152,7 +128,7 @@ module EpubTools
     end
 
     def build_epub_options
-      options = { title: title, author: author, destination: epub_dir }
+      options = { title: title, author: author, destination: @workspace.epub_dir }
       options[:cover_image] = cover_image if cover_image
       options
     end
@@ -160,8 +136,8 @@ module EpubTools
     def add_chapters
       log 'Adding chapters to EPUB...'
       AddChapters.new({
-                        chapters_dir: chapters_dir,
-                        epub_dir: File.join(epub_dir, 'OEBPS'),
+                        chapters_dir: @workspace.chapters_dir,
+                        epub_dir: File.join(@workspace.epub_dir, 'OEBPS'),
                         verbose: verbose
                       }).run
     end
@@ -169,7 +145,7 @@ module EpubTools
     def pack_epub
       log "Building final EPUB '#{output_file}'..."
       PackEbook.new({
-                      input_dir: epub_dir,
+                      input_dir: @workspace.epub_dir,
                       output_file: output_file,
                       verbose: verbose
                     }).run

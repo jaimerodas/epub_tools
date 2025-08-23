@@ -3,13 +3,8 @@
 module EpubTools
   # Builds metadata content for EPUB package.opf files
   class EpubMetadataBuilder
-    def initialize(title:, author:, uuid:, modified:, cover_image_fname: nil, cover_image_media_type: nil)
-      @title = title
-      @author = author
-      @uuid = uuid
-      @modified = modified
-      @cover_image_fname = cover_image_fname
-      @cover_image_media_type = cover_image_media_type
+    def initialize(config)
+      @config = config
     end
 
     # Builds complete metadata array
@@ -17,7 +12,7 @@ module EpubTools
       metadata = []
       add_dublin_core_metadata(metadata)
       add_schema_metadata(metadata)
-      add_cover_metadata(metadata) if @cover_image_fname
+      add_cover_metadata(metadata) if @config.cover_image_fname
       metadata
     end
 
@@ -27,7 +22,7 @@ module EpubTools
       spine_items = []
 
       add_base_manifest_items(manifest_items)
-      add_cover_items(manifest_items, spine_items) if @cover_image_fname
+      add_cover_items(manifest_items, spine_items) if @config.cover_image_fname
       add_title_items(manifest_items, spine_items)
 
       [manifest_items, spine_items]
@@ -54,11 +49,11 @@ module EpubTools
     private
 
     def add_dublin_core_metadata(metadata)
-      metadata << %(<dc:identifier id="pub-id">#{@uuid}</dc:identifier>)
-      metadata << %(<dc:title>#{@title}</dc:title>)
-      metadata << %(<dc:creator>#{@author}</dc:creator>)
+      metadata << %(<dc:identifier id="pub-id">#{@config.uuid}</dc:identifier>)
+      metadata << %(<dc:title>#{@config.title}</dc:title>)
+      metadata << %(<dc:creator>#{@config.author}</dc:creator>)
       metadata << '<dc:language>en</dc:language>'
-      metadata << %(<meta property="dcterms:modified">#{@modified}</meta>)
+      metadata << %(<meta property="dcterms:modified">#{@config.modified}</meta>)
     end
 
     def add_schema_metadata(metadata)
@@ -78,7 +73,7 @@ module EpubTools
     end
 
     def add_cover_items(manifest_items, spine_items)
-      manifest_items << mitem('cover-image', @cover_image_fname, @cover_image_media_type, 'cover-image')
+      manifest_items << mitem('cover-image', @config.cover_image_fname, @config.cover_image_media_type, 'cover-image')
       manifest_items << mitem('cover-page', 'cover.xhtml', 'application/xhtml+xml')
       spine_items << '<itemref idref="cover-page"/>'
     end

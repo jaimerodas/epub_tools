@@ -11,7 +11,6 @@ module EpubTools
       @cover_image_fname = nil
     end
 
-
     # Generates title page XHTML content
     def build_title_page
       <<~XHTML
