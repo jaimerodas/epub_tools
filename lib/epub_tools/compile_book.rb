@@ -125,6 +125,12 @@ module EpubTools
 
     def validate_sequence
       log 'Validating chapter sequence...'
+      nums = extract_chapter_numbers
+      check_sequence_completeness(nums)
+      log "Chapter sequence is complete: #{nums.first} to #{nums.last}."
+    end
+
+    def extract_chapter_numbers
       nums = Dir.glob(File.join(chapters_dir, '*.xhtml')).map do |file|
         if (m = File.basename(file, '.xhtml').match(/_(\d+)\z/))
           m[1].to_i
@@ -132,11 +138,12 @@ module EpubTools
       end.compact
       raise "No chapter files found in #{chapters_dir}" if nums.empty?
 
-      sorted = nums.sort.uniq
+      nums.sort.uniq
+    end
+
+    def check_sequence_completeness(sorted)
       missing = (sorted.first..sorted.last).to_a - sorted
       raise "Missing chapter numbers: #{missing.join(' ')}" if missing.any?
-
-      log "Chapter sequence is complete: #{sorted.first} to #{sorted.last}."
     end
 
     def initialize_epub

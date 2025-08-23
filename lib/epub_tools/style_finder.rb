@@ -27,18 +27,26 @@ module EpubTools
     # Runs the finder
     # @return [Hash] Data containing the extracted style classes (italics and bolds)
     def run
+      style_blocks = extract_style_blocks
+      italics, bolds = extract_style_classes(style_blocks)
+      generate_output(italics, bolds)
+    end
+
+    def extract_style_blocks
       doc = Nokogiri::HTML(File.read(@file_path))
-      style_blocks = doc.xpath('//style').map(&:text).join("\n")
+      doc.xpath('//style').map(&:text).join("\n")
+    end
 
+    def extract_style_classes(style_blocks)
       italics = extract_classes(style_blocks, /font-style\s*:\s*italic/)
-      bolds   = extract_classes(style_blocks, /font-weight\s*:\s*700/)
+      bolds = extract_classes(style_blocks, /font-weight\s*:\s*700/)
+      [italics, bolds]
+    end
 
+    def generate_output(italics, bolds)
       print_summary(italics, bolds) if @verbose
 
-      data = {
-        'italics' => italics,
-        'bolds' => bolds
-      }
+      data = { 'italics' => italics, 'bolds' => bolds }
       File.write(@output_path, data.to_yaml)
       data
     end

@@ -18,7 +18,12 @@ plugins:
 
 
 Metrics/MethodLength:
-  Enabled: false
+  Exclude:
+    - 'test/**/*'
+
+Naming/PredicateMethod:
+  Exclude:
+    - 'test/**/*'
 
 Metrics/ClassLength:
   Enabled: false
