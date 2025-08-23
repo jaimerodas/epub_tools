@@ -63,21 +63,30 @@ gem install ./epub_tools-*.gem
   - `Runner`: Main CLI runner that handles command dispatch
   - `CommandRegistry`: Manages available commands and their configurations
   - `OptionBuilder`: Builds command-line option parsers
+  - `CommandOptionsConfigurator`: Handles command-specific option configuration
 - **Core Classes**: Individual operation classes for EPUB manipulation
   - `XHTMLExtractor`: Extracts XHTML files from EPUB archives
   - `SplitChapters`: Splits XHTML files into separate chapters
-  - `EpubInitializer`: Creates new EPUB directory structure
+  - `EpubInitializer`: Creates new EPUB directory structure (uses configuration pattern)
   - `AddChapters`: Adds chapter files to existing EPUB
   - `PackEbook`: Packages EPUB directories into .epub files
   - `UnpackEbook`: Unpacks .epub files into directories
-  - `CompileBook`: Full workflow combining multiple operations
+  - `CompileBook`: Full workflow combining multiple operations (uses workspace pattern)
+- **Supporting Classes**: SOLID-designed helper classes
+  - `CompileWorkspace`: Manages build directories for CompileBook
+  - `ChapterValidator`: Validates chapter sequence completeness
+  - `EpubConfiguration`: Configuration object for EPUB initialization
+  - `XhtmlGenerator`: Generates XHTML templates for EPUB content
+  - `EpubMetadataBuilder`: Builds OPF metadata content
+  - `EpubFileWriter`: Handles EPUB file writing operations
 
 ### CLI Architecture
 
 The CLI uses a registry-based system where:
 1. Commands are registered in `cli.rb` with their class, required parameters, and defaults
 2. The `Runner` dispatches to the appropriate command class
-3. Each command class implements a `run` method and uses the `Loggable` mixin for verbose output
+3. The `CommandOptionsConfigurator` handles command-specific option setup
+4. Each command class implements a `run` method and uses the `Loggable` mixin for verbose output
 
 ### Dependencies
 
@@ -105,6 +114,11 @@ Tests use Minitest with:
 - CLI tests verify command registration and option parsing
 - Individual component tests verify core functionality
 
-### Key Configuration
+### Code Quality
 
-The RuboCop configuration disables several metrics cops (method length, class length, complexity) to accommodate the CLI option building patterns used in this codebase.
+The codebase follows SOLID principles with:
+- **Single Responsibility**: Classes have focused, well-defined purposes
+- **Open/Closed**: Extensible design through composition and dependency injection
+- **Dependency Inversion**: Configuration objects and factory patterns
+
+RuboCop configuration excludes test files from metrics cops while maintaining strict standards for production code.
