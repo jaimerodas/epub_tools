@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative '../test_helper'
 require_relative '../../lib/epub_tools'
 require 'stringio'
@@ -35,12 +36,12 @@ class RunnerTest < Minitest::Test
 
   def test_handle_command
     @runner.registry.register('test-cmd', TestCommand)
-    
+
     # Add the configuration method for test-cmd to the runner
     def @runner.configure_test_cmd_options(builder)
       # No special options needed for test command
     end
-    
+
     assert_output(/Usage: test-program test-cmd/) do
       assert_raises(SystemExit) { @runner.handle_command('test-cmd', ['-h']) }
     end
@@ -49,12 +50,12 @@ class RunnerTest < Minitest::Test
   def test_handle_command_with_required_args
     runner = EpubTools::CLI::Runner.new('test-program')
     runner.registry.register('test-cmd', TestCommand)
-    
+
     # Add the configuration method for test-cmd to the runner
     def runner.configure_test_cmd_options(builder)
       # No special options needed for test command
     end
-    
+
     assert_output("Called!\n") { assert runner.handle_command('test-cmd') }
   end
 

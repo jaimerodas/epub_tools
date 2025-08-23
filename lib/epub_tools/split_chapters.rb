@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 require 'nokogiri'
 require 'yaml'
 require 'fileutils'
@@ -17,6 +18,7 @@ module EpubTools
   # - Saves those files to +output_dir+
   class SplitChapters
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :input_file Path to the source XHTML (required)
@@ -61,21 +63,34 @@ module EpubTools
       current_fragment = nil
 
       doc.at('body').children.each do |node|
-        if (m = node.text.match(/Chapter\s+(\d+)/i)) && %w[p span h2 h3 h4].include?(node.name)
-          # start a new chapter (skip the marker node so title isn't duplicated)
-          chapters[current_number] = current_fragment.to_html if current_number
-          current_number = m[1].to_i
-          current_fragment = Nokogiri::HTML::DocumentFragment.parse('')
+        if chapter_marker?(node)
+          current_number, current_fragment = start_new_chapter(chapters, node, current_number, current_fragment)
         elsif prologue_marker?(node)
-          # start the prologue (skip the marker node)
-          chapters[current_number] = current_fragment.to_html if current_number
-          current_number = 0
-          current_fragment = Nokogiri::HTML::DocumentFragment.parse('')
+          current_number, current_fragment = start_prologue(chapters, current_number, current_fragment)
         else
           current_fragment&.add_child(node.dup)
         end
       end
 
+      finalize_chapters(chapters, current_number, current_fragment)
+    end
+
+    def chapter_marker?(node)
+      node.text.match?(/Chapter\s+\d+/i) && %w[p span h2 h3 h4].include?(node.name)
+    end
+
+    def start_new_chapter(chapters, node, current_number, current_fragment)
+      chapters[current_number] = current_fragment.to_html if current_number
+      chapter_number = node.text.match(/Chapter\s+(\d+)/i)[1].to_i
+      [chapter_number, Nokogiri::HTML::DocumentFragment.parse('')]
+    end
+
+    def start_prologue(chapters, current_number, current_fragment)
+      chapters[current_number] = current_fragment.to_html if current_number
+      [0, Nokogiri::HTML::DocumentFragment.parse('')]
+    end
+
+    def finalize_chapters(chapters, current_number, current_fragment)
       chapters[current_number] = current_fragment.to_html if current_number
       chapters
     end
@@ -92,7 +107,14 @@ module EpubTools
     def write_chapter_file(label, content)
       display_label = display_label(label)
       filename = File.join(@output_dir, "#{@output_prefix}_#{label}.xhtml")
-      File.write(filename, <<~HTML)
+      File.write(filename, build_xhtml_template(display_label, content))
+      XHTMLCleaner.new({ filename: filename }).run
+      log("Extracted: #{filename}")
+      filename
+    end
+
+    def build_xhtml_template(display_label, content)
+      <<~HTML
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
           <head>
@@ -105,9 +127,6 @@ module EpubTools
           </body>
         </html>
       HTML
-      XHTMLCleaner.new({ filename: filename }).run
-      log("Extracted: #{filename}")
-      filename
     end
 
     def display_label(label)

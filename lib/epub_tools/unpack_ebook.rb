@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'zip'
 require 'fileutils'
 require_relative 'loggable'
@@ -7,6 +8,7 @@ module EpubTools
   # Unpacks an EPUB (.epub file) into a directory
   class UnpackEbook
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :epub_file Path to the .epub file to unpack (required)

@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 require 'fileutils'
 require_relative 'loggable'
 require_relative 'xhtml_extractor'
@@ -12,6 +13,7 @@ module EpubTools
   # Orchestrates extraction, splitting, validation, and packaging of book EPUBs
   class CompileBook
     include Loggable
+
     # Book title
     attr_reader :title
     # Book author
@@ -133,8 +135,6 @@ module EpubTools
       log 'Initializing new EPUB...'
       EpubInitializer.new(build_epub_options).run
     end
-
-    private
 
     def build_epub_options
       options = { title: title, author: author, destination: epub_dir }

@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 require 'nokogiri'
 require 'yaml'
 require_relative 'loggable'
@@ -10,6 +11,7 @@ module EpubTools
   # {SplitChapters}[rdoc-ref:EpubTools::SplitChapters].
   class StyleFinder
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :file_path XHTML file to be analyzed (required)

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'zip'
 require 'fileutils'
 require_relative 'loggable'
@@ -7,6 +8,7 @@ module EpubTools
   # Extracts text .xhtml files from EPUB archives, excluding nav.xhtml
   class XHTMLExtractor
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :source_dir Directory containing source .epub files (required)
@@ -40,21 +42,27 @@ module EpubTools
       epub_name = File.basename(epub_path, '.epub')
       log "Extracting from #{epub_name}.epub"
       extracted_files = []
-      Zip::File.open(epub_path) do |zip_file|
-        zip_file.each do |entry|
-          next unless entry.name.downcase.end_with?('.xhtml')
-          next if File.basename(entry.name).downcase == 'nav.xhtml'
 
-          output_path = File.join(@target_dir, "#{epub_name}_#{File.basename(entry.name)}")
-          FileUtils.mkdir_p(File.dirname(output_path))
-          entry.extract(output_path) { true }
-          log output_path
-          extracted_files << output_path
-        end
+      Zip::File.open(epub_path) do |zip_file|
+        zip_file.each { |entry| extract_entry_if_xhtml(entry, epub_name, extracted_files) }
       end
       extracted_files
     rescue Zip::Error => e
       warn "⚠️ Failed to process #{epub_path}: #{e.message}"
+    end
+
+    def extract_entry_if_xhtml(entry, epub_name, extracted_files)
+      return unless xhtml_entry?(entry)
+
+      output_path = File.join(@target_dir, "#{epub_name}_#{File.basename(entry.name)}")
+      FileUtils.mkdir_p(File.dirname(output_path))
+      entry.extract(output_path) { true }
+      log output_path
+      extracted_files << output_path
+    end
+
+    def xhtml_entry?(entry)
+      entry.name.downcase.end_with?('.xhtml') && File.basename(entry.name).downcase != 'nav.xhtml'
     end
   end
 end

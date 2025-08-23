@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module EpubTools
   module CLI
     # Manages the registration and retrieval of commands

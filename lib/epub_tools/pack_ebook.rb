@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'zip'
 require 'fileutils'
 require 'pathname'
@@ -8,6 +9,7 @@ module EpubTools
   # Packages an EPUB directory into a .epub file
   class PackEbook
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :input_dir Path to the EPUB directory (containing mimetype, META-INF, OEBPS) (required)

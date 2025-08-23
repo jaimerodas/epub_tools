@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative 'cli/command_registry'
 require_relative 'cli/option_builder'
 require_relative 'cli/runner'
@@ -20,7 +21,8 @@ module EpubTools
     def self.register_all_commands(registry)
       registry.register('add', EpubTools::AddChapters, %i[chapters_dir oebps_dir])
       registry.register('extract', EpubTools::XHTMLExtractor, %i[source_dir target_dir], { verbose: true })
-      registry.register('split', EpubTools::SplitChapters, %i[input_file book_title], { output_dir: './chapters', prefix: 'chapter', verbose: true })
+      registry.register('split', EpubTools::SplitChapters, %i[input_file book_title],
+                        { output_dir: './chapters', prefix: 'chapter', verbose: true })
       registry.register('init', EpubTools::EpubInitializer, %i[title author destination], { verbose: true })
       registry.register('pack', EpubTools::PackEbook, %i[input_dir output_file], { verbose: true })
       registry.register('unpack', EpubTools::UnpackEbook, [:epub_file], { verbose: true })

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative 'command_registry'
 require_relative 'option_builder'
 
@@ -57,8 +58,9 @@ module EpubTools
         # Parse arguments and run the command
         options = builder.parse(args)
         command_class = command_config[:class]
-        command_class.new(options).run
-        true
+        command_instance = command_class.new(options)
+        command_instance.run
+        command_instance
       end
 
       private
@@ -84,11 +86,9 @@ module EpubTools
       # @param builder [OptionBuilder] Option builder instance
       def configure_command_options(cmd, builder)
         method_name = "configure_#{cmd.tr('-', '_')}_options"
-        if respond_to?(method_name, true)
-          send(method_name, builder)
-        else
-          raise ArgumentError, "Unknown command: #{cmd}"
-        end
+        raise ArgumentError, "Unknown command: #{cmd}" unless respond_to?(method_name, true)
+
+        send(method_name, builder)
       end
 
       # Configure options for the 'add' command
@@ -104,8 +104,13 @@ module EpubTools
       # @param builder [OptionBuilder] Option builder instance
       def configure_extract_options(builder)
         builder.with_custom_options do |opts, options|
-          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') { |v| options[:source_dir] = v }
-          opts.on('-t DIR', '--target-dir DIR', 'Directory where the XHTML files will be extracted to (required)') { |v| options[:target_dir] = v }
+          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') do |v|
+            options[:source_dir] = v
+          end
+          opts.on('-t DIR', '--target-dir DIR',
+                  'Directory where the XHTML files will be extracted to (required)') do |v|
+            options[:target_dir] = v
+          end
         end.with_verbose_option
       end
 
@@ -114,9 +119,16 @@ module EpubTools
       def configure_split_options(builder)
         builder.with_custom_options do |opts, options|
           opts.on('-i FILE', '--input FILE', 'Source XHTML file (required)') { |v| options[:input_file] = v }
-          opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') { |v| options[:book_title] = v }
-          opts.on('-o DIR', '--output-dir DIR', "Output directory for chapter files (default: #{options[:output_dir]})") { |v| options[:output_dir] = v }
-          opts.on('-p PREFIX', '--prefix PREFIX', "Filename prefix for chapters (default: #{options[:prefix]})") { |v| options[:prefix] = v }
+          opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') do |v|
+            options[:book_title] = v
+          end
+          opts.on('-o DIR', '--output-dir DIR',
+                  "Output directory for chapter files (default: #{options[:output_dir]})") do |v|
+            options[:output_dir] = v
+          end
+          opts.on('-p PREFIX', '--prefix PREFIX', "Filename prefix for chapters (default: #{options[:prefix]})") do |v|
+            options[:prefix] = v
+          end
         end.with_verbose_option
       end
 
@@ -126,7 +138,9 @@ module EpubTools
         builder.with_title_option
                .with_author_option
                .with_custom_options do |opts, options|
-          opts.on('-o DIR', '--output-dir DIR', 'Destination EPUB directory (required)') { |v| options[:destination] = v }
+          opts.on('-o DIR', '--output-dir DIR', 'Destination EPUB directory (required)') do |v|
+            options[:destination] = v
+          end
         end.with_cover_option
       end
 
@@ -143,7 +157,9 @@ module EpubTools
       def configure_unpack_options(builder)
         builder.with_custom_options do |opts, options|
           opts.on('-i FILE', '--input-file FILE', 'EPUB file to unpack (required)') { |v| options[:epub_file] = v }
-          opts.on('-o DIR', '--output-dir DIR', 'Output directory to extract into (default: basename of epub)') { |v| options[:output_dir] = v }
+          opts.on('-o DIR', '--output-dir DIR', 'Output directory to extract into (default: basename of epub)') do |v|
+            options[:output_dir] = v
+          end
         end.with_verbose_option
       end
 
@@ -153,8 +169,12 @@ module EpubTools
         builder.with_title_option
                .with_author_option
                .with_custom_options do |opts, options|
-          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') { |v| options[:source_dir] = v }
-          opts.on('-o FILE', '--output FILE', 'EPUB to create (default: book title in source dir)') { |v| options[:output_file] = v }
+          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') do |v|
+            options[:source_dir] = v
+          end
+          opts.on('-o FILE', '--output FILE', 'EPUB to create (default: book title in source dir)') do |v|
+            options[:output_file] = v
+          end
         end.with_cover_option.with_verbose_option
       end
     end

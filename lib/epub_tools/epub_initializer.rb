@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 require 'fileutils'
 require 'time'
 require 'securerandom'
@@ -16,6 +17,7 @@ module EpubTools
   # - cover image (optionally)
   class EpubInitializer
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :title Book title (required)
@@ -93,21 +95,19 @@ module EpubTools
 
     # Copies the cover image into the EPUB structure and creates a cover.xhtml page
     def write_cover
-      return unless validate_cover_image_exists
-      
+      return unless cover_image_exists?
+
       ext = File.extname(@cover_image_path).downcase
       @cover_image_media_type = determine_media_type(ext)
       return unless @cover_image_media_type
-      
+
       copy_cover_image(ext)
       write_cover_page
     end
 
-    private
-
-    def validate_cover_image_exists
+    def cover_image_exists?
       return true if File.exist?(@cover_image_path)
-      
+
       warn "Warning: cover image '#{@cover_image_path}' not found; skipping cover support."
       false
     end
@@ -164,12 +164,10 @@ module EpubTools
       File.write(File.join(@destination, 'OEBPS', 'package.opf'), content)
     end
 
-    private
-
     def build_manifest_and_spine
       manifest_items = []
       spine_items = []
-      
+
       manifest_items << mitem('style', 'style.css', 'text/css')
       manifest_items << mitem('nav', 'nav.xhtml', 'application/xhtml+xml', 'nav')
 
@@ -181,7 +179,7 @@ module EpubTools
 
       manifest_items << mitem('title', 'title.xhtml', 'application/xhtml+xml')
       spine_items << '<itemref idref="title"/>'
-      
+
       [manifest_items, spine_items]
     end
 

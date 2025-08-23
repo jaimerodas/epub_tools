@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 require 'nokogiri'
 require 'fileutils'
 require_relative 'loggable'
@@ -8,6 +9,7 @@ module EpubTools
   # Moves new chapters into an unpacked EPUB
   class AddChapters
     include Loggable
+
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :chapters_dir Directory from which to move the xhtml chapters.
@@ -94,8 +96,6 @@ module EpubTools
 
       File.write(@nav_file, doc.to_xml(indent: 2))
     end
-
-    private
 
     def create_nav_link(doc, filename)
       li = Nokogiri::XML::Node.new('li', doc)

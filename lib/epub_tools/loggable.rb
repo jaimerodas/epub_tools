@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module EpubTools
   # Provides logging capability to classes that include it
   module Loggable
