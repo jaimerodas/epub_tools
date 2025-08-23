@@ -26,7 +26,8 @@ Naming/PredicateMethod:
     - 'test/**/*'
 
 Metrics/ClassLength:
-  Enabled: false
+  Exclude:
+    - 'test/**/*'
 
 Metrics/AbcSize:
   Exclude:

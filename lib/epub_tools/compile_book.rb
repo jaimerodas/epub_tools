@@ -53,30 +53,26 @@ module EpubTools
 
     # Run the full compile workflow
     def run
-      prepare_workspace
-      execute_workflow
-      finalize_output
-    end
-
-    private
-
-    def prepare_workspace
-      @workspace.clean
-      log "Cleaning build directory #{@build_dir}..."
-      @workspace.prepare_directories
-      log 'Preparing build directories...'
-    end
-
-    def execute_workflow
+      setup_workspace
       extract_xhtmls
       split_xhtmls
       validate_chapters
       initialize_epub
       add_chapters
       pack_epub
+      finalize_and_cleanup
     end
 
-    def finalize_output
+    private
+
+    def setup_workspace
+      @workspace.clean
+      log "Cleaning build directory #{@build_dir}..."
+      @workspace.prepare_directories
+      log 'Preparing build directories...'
+    end
+
+    def finalize_and_cleanup
       log "Done. Output EPUB: #{File.expand_path(output_file)}"
       @workspace.clean
       output_file

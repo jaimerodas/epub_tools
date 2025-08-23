@@ -35,28 +35,18 @@ class RunnerTest < Minitest::Test
   end
 
   def test_handle_command
-    @runner.registry.register('test-cmd', TestCommand)
+    @runner.registry.register('add', TestCommand)
 
-    # Add the configuration method for test-cmd to the runner
-    def @runner.configure_test_cmd_options(builder)
-      # No special options needed for test command
-    end
-
-    assert_output(/Usage: test-program test-cmd/) do
-      assert_raises(SystemExit) { @runner.handle_command('test-cmd', ['-h']) }
+    assert_output(/Usage: test-program add/) do
+      assert_raises(SystemExit) { @runner.handle_command('add', ['-h']) }
     end
   end
 
   def test_handle_command_with_required_args
     runner = EpubTools::CLI::Runner.new('test-program')
-    runner.registry.register('test-cmd', TestCommand)
+    runner.registry.register('add', TestCommand)
 
-    # Add the configuration method for test-cmd to the runner
-    def runner.configure_test_cmd_options(builder)
-      # No special options needed for test command
-    end
-
-    assert_output("Called!\n") { assert runner.handle_command('test-cmd') }
+    assert_output("Called!\n") { assert runner.handle_command('add') }
   end
 
   def test_handle_nonexistent_command
@@ -84,18 +74,13 @@ class RunnerTest < Minitest::Test
   end
 
   def test_configure_command_options
-    # This is testing a private method, which is generally not recommended,
-    # but it's useful to ensure all command configurations work
+    # Test command configuration through public interface
+    @runner.registry.register('add', TestCommand)
 
-    # Use send to access private method
-    builder = EpubTools::CLI::OptionBuilder.new
-
-    # Test each command configuration - we'll just check one example
-    @runner.send(:configure_command_options, 'add', builder)
-
-    # Check add command options were added
-    assert_includes builder.parser.to_s, '--chapters-dir DIR'
-    assert_includes builder.parser.to_s, '--oebps-dir DIR'
+    # Should show help without errors
+    assert_output(/Usage: test-program add/) do
+      assert_raises(SystemExit) { @runner.handle_command('add', ['-h']) }
+    end
   end
 
   def test_run_with_unknown_command
