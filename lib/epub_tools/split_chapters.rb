@@ -63,16 +63,21 @@ module EpubTools
       current_fragment = nil
 
       doc.at('body').children.each do |node|
-        if chapter_marker?(node)
-          current_number, current_fragment = start_new_chapter(chapters, node, current_number, current_fragment)
-        elsif prologue_marker?(node)
-          current_number, current_fragment = start_prologue(chapters, current_number, current_fragment)
-        else
-          current_fragment&.add_child(node.dup)
-        end
+        current_number, current_fragment = process_node(node, chapters, current_number, current_fragment)
       end
 
       finalize_chapters(chapters, current_number, current_fragment)
+    end
+
+    def process_node(node, chapters, current_number, current_fragment)
+      if chapter_marker?(node)
+        start_new_chapter(chapters, node, current_number, current_fragment)
+      elsif prologue_marker?(node)
+        start_prologue(chapters, current_number, current_fragment)
+      else
+        current_fragment&.add_child(node.dup)
+        [current_number, current_fragment]
+      end
     end
 
     def chapter_marker?(node)

@@ -31,27 +31,38 @@ module EpubTools
     def run
       validate_input!
       Dir.chdir(@input_dir) do
-        # determine the output path: absolute stays as-is, otherwise sibling to input_dir
-        target = Pathname.new(@output_file).absolute? ? @output_file : File.join('..', @output_file)
+        target = determine_output_path
         FileUtils.rm_f(target)
-        Zip::File.open(target, Zip::File::CREATE) do |zip|
-          # Add mimetype first and uncompressed
-          add_mimetype(zip)
-
-          # Add all other files with compression, preserving paths
-          Dir.glob('**/*', File::FNM_DOTMATCH).sort.each do |entry|
-            next if ['.', '..', 'mimetype'].include?(entry)
-            next if File.directory?(entry)
-
-            zip.add(entry, entry)
-          end
-        end
+        create_zip_file(target)
       end
       log "EPUB created: #{@output_file}"
       @output_file
     end
 
     private
+
+    def determine_output_path
+      # determine the output path: absolute stays as-is, otherwise sibling to input_dir
+      Pathname.new(@output_file).absolute? ? @output_file : File.join('..', @output_file)
+    end
+
+    def create_zip_file(target)
+      Zip::File.open(target, Zip::File::CREATE) do |zip|
+        # Add mimetype first and uncompressed
+        add_mimetype(zip)
+        add_content_files(zip)
+      end
+    end
+
+    def add_content_files(zip)
+      # Add all other files with compression, preserving paths
+      Dir.glob('**/*', File::FNM_DOTMATCH).sort.each do |entry|
+        next if ['.', '..', 'mimetype'].include?(entry)
+        next if File.directory?(entry)
+
+        zip.add(entry, entry)
+      end
+    end
 
     def validate_input!
       raise ArgumentError, "Directory '#{@input_dir}' does not exist." unless Dir.exist?(@input_dir)

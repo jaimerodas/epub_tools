@@ -45,6 +45,17 @@ module EpubTools
         command_config = registry.get(cmd)
         return false unless command_config
 
+        builder = build_option_parser(cmd, command_config)
+        execute_command(command_config, builder, args)
+      end
+
+      private
+
+      # Build option parser for a command
+      # @param cmd [String] Command name
+      # @param command_config [Hash] Command configuration
+      # @return [OptionBuilder] Configured option builder
+      def build_option_parser(cmd, command_config)
         options = command_config[:default_options].dup
         required_keys = command_config[:required_keys]
 
@@ -52,18 +63,22 @@ module EpubTools
                                .with_banner("Usage: #{program_name} #{cmd} [options]")
                                .with_help_option
 
-        # Configure command-specific options
         configure_command_options(cmd, builder)
+        builder
+      end
 
-        # Parse arguments and run the command
+      # Execute a command with parsed options
+      # @param command_config [Hash] Command configuration
+      # @param builder [OptionBuilder] Option builder instance
+      # @param args [Array<String>] Command line arguments
+      # @return [Object] Command instance
+      def execute_command(command_config, builder, args)
         options = builder.parse(args)
         command_class = command_config[:class]
         command_instance = command_class.new(options)
         command_instance.run
         command_instance
       end
-
-      private
 
       # Print usage information
       # @param commands [Array<String>] Available commands
@@ -118,18 +133,26 @@ module EpubTools
       # @param builder [OptionBuilder] Option builder instance
       def configure_split_options(builder)
         builder.with_custom_options do |opts, options|
-          opts.on('-i FILE', '--input FILE', 'Source XHTML file (required)') { |v| options[:input_file] = v }
-          opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') do |v|
-            options[:book_title] = v
-          end
-          opts.on('-o DIR', '--output-dir DIR',
-                  "Output directory for chapter files (default: #{options[:output_dir]})") do |v|
-            options[:output_dir] = v
-          end
-          opts.on('-p PREFIX', '--prefix PREFIX', "Filename prefix for chapters (default: #{options[:prefix]})") do |v|
-            options[:prefix] = v
-          end
+          add_split_input_options(opts, options)
+          add_split_output_options(opts, options)
         end.with_verbose_option
+      end
+
+      def add_split_input_options(opts, options)
+        opts.on('-i FILE', '--input FILE', 'Source XHTML file (required)') { |v| options[:input_file] = v }
+        opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') do |v|
+          options[:book_title] = v
+        end
+      end
+
+      def add_split_output_options(opts, options)
+        opts.on('-o DIR', '--output-dir DIR',
+                "Output directory for chapter files (default: #{options[:output_dir]})") do |v|
+          options[:output_dir] = v
+        end
+        opts.on('-p PREFIX', '--prefix PREFIX', "Filename prefix for chapters (default: #{options[:prefix]})") do |v|
+          options[:prefix] = v
+        end
       end
 
       # Configure options for the 'init' command

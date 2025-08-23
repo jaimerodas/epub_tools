@@ -103,16 +103,24 @@ module EpubTools
     def split_xhtmls
       log 'Splitting XHTML files into chapters...'
       Dir.glob(File.join(xhtml_dir, '*.xhtml')).each do |xhtml_file|
-        base = File.basename(xhtml_file, '.xhtml')
-        log "Splitting '#{base}'..."
-        SplitChapters.new({
-                            input_file: xhtml_file,
-                            book_title: title,
-                            output_dir: chapters_dir,
-                            output_prefix: 'chapter',
-                            verbose: verbose
-                          }).run
+        split_xhtml_file(xhtml_file)
       end
+    end
+
+    def split_xhtml_file(xhtml_file)
+      base = File.basename(xhtml_file, '.xhtml')
+      log "Splitting '#{base}'..."
+      SplitChapters.new(build_split_options(xhtml_file)).run
+    end
+
+    def build_split_options(xhtml_file)
+      {
+        input_file: xhtml_file,
+        book_title: title,
+        output_dir: chapters_dir,
+        output_prefix: 'chapter',
+        verbose: verbose
+      }
     end
 
     def validate_sequence

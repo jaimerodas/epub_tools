@@ -26,22 +26,30 @@ module EpubTools
     def run
       validate!
       FileUtils.mkdir_p(@output_dir)
-      Zip::File.open(@epub_file) do |zip|
-        zip.each do |entry|
-          dest_path = File.join(@output_dir, entry.name)
-          if entry.directory?
-            FileUtils.mkdir_p(dest_path)
-          else
-            FileUtils.mkdir_p(File.dirname(dest_path))
-            entry.extract(dest_path) { true }
-          end
-        end
-      end
+      extract_entries
       log "Unpacked #{File.basename(@epub_file)} to #{@output_dir}"
       @output_dir
     end
 
     private
+
+    def extract_entries
+      Zip::File.open(@epub_file) do |zip|
+        zip.each do |entry|
+          extract_entry(entry)
+        end
+      end
+    end
+
+    def extract_entry(entry)
+      dest_path = File.join(@output_dir, entry.name)
+      if entry.directory?
+        FileUtils.mkdir_p(dest_path)
+      else
+        FileUtils.mkdir_p(File.dirname(dest_path))
+        entry.extract(dest_path) { true }
+      end
+    end
 
     def default_dir
       [File.dirname(@epub_file), File.basename(@epub_file, '.epub')].join('/')
