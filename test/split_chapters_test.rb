@@ -32,10 +32,19 @@ class SplitChaptersTest < Minitest::Test
     result = EpubTools::SplitChapters.new(input_file: @input, book_title: 'BookTitle', output_dir: @out,
                                           output_prefix: 'chap').run
 
-    # Check return value is an array of chapter file paths
+    verify_return_value(result)
+    verify_generated_files_exist(result)
+    verify_chapter_contents
+  end
+
+  private
+
+  def verify_return_value(result)
     assert_instance_of Array, result
     assert_equal 3, result.size
+  end
 
+  def verify_generated_files_exist(result)
     expected_paths = [
       File.join(@out, 'chap_0.xhtml'),
       File.join(@out, 'chap_1.xhtml'),
@@ -49,25 +58,34 @@ class SplitChaptersTest < Minitest::Test
 
     files = Dir.children(@out)
 
-    assert_includes files, 'chap_0.xhtml'
-    assert_includes files, 'chap_1.xhtml'
-    assert_includes files, 'chap_2.xhtml'
+    ['chap_0.xhtml', 'chap_1.xhtml', 'chap_2.xhtml'].each do |file|
+      assert_includes files, file
+    end
+  end
 
-    # Prologue
+  def verify_chapter_contents
+    verify_prologue_content
+    verify_chapter_one_content
+    verify_chapter_two_content
+  end
+
+  def verify_prologue_content
     prologue = File.read(File.join(@out, 'chap_0.xhtml'))
 
     assert_includes prologue, '<h1>Prologue</h1>'
     assert_includes prologue, 'Intro text'
     refute_includes prologue, 'Chapter 1'
+  end
 
-    # Chapter 1
+  def verify_chapter_one_content
     ch1 = File.read(File.join(@out, 'chap_1.xhtml'))
 
     assert_includes ch1, '<h1>Chapter 1</h1>'
     assert_includes ch1, 'First paragraph'
     refute_includes ch1, 'Chapter 2'
+  end
 
-    # Chapter 2
+  def verify_chapter_two_content
     ch2 = File.read(File.join(@out, 'chap_2.xhtml'))
 
     assert_includes ch2, '<h1>Chapter 2</h1>'

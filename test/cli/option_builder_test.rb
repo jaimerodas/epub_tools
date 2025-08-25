@@ -43,17 +43,13 @@ class OptionBuilderTest < Minitest::Test
   def test_with_input_file
     @builder.with_input_file('Test input')
 
-    assert_includes @builder.parser.to_s, '-i, --input-file FILE'
-    assert_includes @builder.parser.to_s, 'Test input (required)'
+    verify_parser_option_format('-i, --input-file FILE', 'Test input (required)')
 
-    # Test with required=false
     builder2 = EpubTools::CLI::OptionBuilder.new
     builder2.with_input_file('Test input', required: false)
 
-    assert_includes builder2.parser.to_s, 'Test input'
-    refute_includes builder2.parser.to_s, 'Test input (required)'
+    verify_optional_parser_format(builder2, 'Test input')
 
-    # Test with actual parsing
     @builder.parse(['-i', 'file.txt'])
 
     assert_equal 'file.txt', @builder.options[:input_file]
@@ -71,20 +67,16 @@ class OptionBuilderTest < Minitest::Test
   end
 
   def test_with_output_dir
-    # Test with default value
     @builder.with_output_dir('Test output dir', 'default/path')
 
-    assert_includes @builder.parser.to_s, '-o, --output-dir DIR'
-    assert_includes @builder.parser.to_s, 'Test output dir (default: default/path)'
+    verify_parser_option_format('-o, --output-dir DIR', 'Test output dir (default: default/path)')
+
     assert_equal 'default/path', @builder.options[:output_dir]
 
-    # Test without default
     builder2 = EpubTools::CLI::OptionBuilder.new
     builder2.with_output_dir('Test output dir')
+    verify_required_parser_format(builder2, 'Test output dir (required)')
 
-    assert_includes builder2.parser.to_s, 'Test output dir (required)'
-
-    # Test actual parsing
     @builder.parse(['-o', 'new/path'])
 
     assert_equal 'new/path', @builder.options[:output_dir]
@@ -171,5 +163,21 @@ class OptionBuilderTest < Minitest::Test
                      .with_title_option
 
     assert_equal @builder, result
+  end
+
+  private
+
+  def verify_parser_option_format(option_format, description)
+    assert_includes @builder.parser.to_s, option_format
+    assert_includes @builder.parser.to_s, description
+  end
+
+  def verify_optional_parser_format(builder, description)
+    assert_includes builder.parser.to_s, description
+    refute_includes builder.parser.to_s, "#{description} (required)"
+  end
+
+  def verify_required_parser_format(builder, description)
+    assert_includes builder.parser.to_s, description
   end
 end

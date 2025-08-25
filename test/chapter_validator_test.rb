@@ -10,7 +10,7 @@ class ChapterValidatorTest < Minitest::Test
   end
 
   def teardown
-    FileUtils.remove_entry(@tmp) if Dir.exist?(@tmp)
+    FileUtils.rm_rf(@tmp)
   end
 
   def test_validates_complete_sequence

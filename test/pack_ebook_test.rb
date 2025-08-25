@@ -16,36 +16,58 @@ class PackEbookTest < Minitest::Test
   end
 
   def test_run_creates_epub_with_expected_entries
-    # Create minimal EPUB directory
+    create_minimal_epub_structure
+    output = File.join(@tmp, 'out.epub')
+    result = EpubTools::PackEbook.new(input_dir: @epub_dir, output_file: output).run
+
+    verify_return_value(output, result)
+    verify_epub_entries(output)
+  end
+
+  private
+
+  def create_minimal_epub_structure
     File.write(File.join(@epub_dir, 'mimetype'), 'application/epub+zip')
     FileUtils.mkdir_p(File.join(@epub_dir, 'META-INF'))
     File.write(File.join(@epub_dir, 'META-INF', 'container.xml'), '<container/>')
     FileUtils.mkdir_p(File.join(@epub_dir, 'OEBPS'))
     File.write(File.join(@epub_dir, 'OEBPS', 'title.xhtml'), '<html/>')
+  end
 
-    output = File.join(@tmp, 'out.epub')
-    result = EpubTools::PackEbook.new(input_dir: @epub_dir, output_file: output).run
+  def verify_return_value(expected_output, result)
+    assert_equal expected_output, result
+    assert_path_exists expected_output, 'Expected output EPUB to exist'
+  end
 
-    # Check return value is the output file path
-    assert_equal output, result
-    assert_path_exists output, 'Expected output EPUB to exist'
+  def verify_epub_entries(output_file)
+    entries = extract_zip_entries(output_file)
+    verify_mimetype_entry(entries)
+    verify_expected_files(entries)
+  end
+
+  def extract_zip_entries(output_file)
     entries = []
-    Zip::File.open(output) do |zip|
+    Zip::File.open(output_file) do |zip|
       zip.each do |entry|
         entries << { name: entry.name, compression: entry.compression_method }
       end
     end
+    entries
+  end
 
-    # First entry should be mimetype, stored without compression
+  def verify_mimetype_entry(entries)
     assert_equal 'mimetype', entries.first[:name]
     assert_equal 0, entries.first[:compression]
+  end
 
-    # Check presence of other files
+  def verify_expected_files(entries)
     names = entries.map { |e| e[:name] }
 
     assert_includes names, 'META-INF/container.xml'
     assert_includes names, 'OEBPS/title.xhtml'
   end
+
+  public
 
   def test_missing_input_dir_raises_error
     assert_raises(ArgumentError) do

@@ -55,47 +55,69 @@ class AddChaptersTest < Minitest::Test
   end
 
   def test_run_moves_files_and_updates_opf_and_nav
-    # Run the add chapters task
     result = EpubTools::AddChapters.new(chapters_dir: @chapters_dir, oebps_dir: @epub_dir).run
 
-    # Check return value is an array of moved file basenames
+    verify_return_value(result)
+    verify_files_moved
+    verify_opf_structure
+    verify_nav_structure
+  end
+
+  private
+
+  def verify_return_value(result)
     assert_instance_of Array, result
     assert_equal 2, result.size
     assert_includes result, 'chapter_0.xhtml'
     assert_includes result, 'chapter_1.xhtml'
+  end
 
-    # Original chapter files should be moved
+  def verify_files_moved
     assert_empty Dir.glob(File.join(@chapters_dir, '*.xhtml'))
     assert_path_exists File.join(@epub_dir, 'chapter_0.xhtml')
     assert_path_exists File.join(@epub_dir, 'chapter_1.xhtml')
+  end
 
-    # package.opf should include manifest items and spine refs
-    doc = Nokogiri::XML(File.read(@opf_file)) { |cfg| cfg.default_xml.noblanks }
-    items   = doc.xpath('//xmlns:manifest/xmlns:item')
-    idrefs  = doc.xpath('//xmlns:spine/xmlns:itemref')
-    hrefs   = items.map { |i| i['href'] }
-    ids     = items.map { |i| i['id'] }
-    refs    = idrefs.map { |ir| ir['idref'] }
+  def verify_opf_structure
+    doc = parse_opf_document
+    opf_data = extract_opf_data(doc)
 
-    assert_includes hrefs, 'chapter_0.xhtml'
-    assert_includes hrefs, 'chapter_1.xhtml'
-    assert_includes ids,   'chap0'
-    assert_includes ids,   'chap1'
-    assert_includes refs,  'chap0'
-    assert_includes refs,  'chap1'
+    assert_includes opf_data[:hrefs], 'chapter_0.xhtml'
+    assert_includes opf_data[:hrefs], 'chapter_1.xhtml'
+    assert_includes opf_data[:ids], 'chap0'
+    assert_includes opf_data[:ids], 'chap1'
+    assert_includes opf_data[:refs], 'chap0'
+    assert_includes opf_data[:refs], 'chap1'
+  end
 
-    # nav.xhtml should have list entries for each chapter
-    nav_doc = Nokogiri::XML(File.read(@nav_file))
-    # strip namespaces for easy querying
-    nav_doc.remove_namespaces!
-    links = nav_doc.xpath('//nav/ol/li/a')
+  def verify_nav_structure
+    links = extract_nav_links
 
     assert_equal 2, links.size
-    # First is Prologue (chapter_0)
     assert_equal 'chapter_0.xhtml', links[0]['href']
     assert_equal 'Prologue', links[0].text
-    # Second is Chapter 1
     assert_equal 'chapter_1.xhtml', links[1]['href']
     assert_equal 'Chapter 1', links[1].text
+  end
+
+  def parse_opf_document
+    Nokogiri::XML(File.read(@opf_file)) { |cfg| cfg.default_xml.noblanks }
+  end
+
+  def extract_opf_data(doc)
+    items = doc.xpath('//xmlns:manifest/xmlns:item')
+    idrefs = doc.xpath('//xmlns:spine/xmlns:itemref')
+
+    {
+      hrefs: items.map { |i| i['href'] },
+      ids: items.map { |i| i['id'] },
+      refs: idrefs.map { |ir| ir['idref'] }
+    }
+  end
+
+  def extract_nav_links
+    nav_doc = Nokogiri::XML(File.read(@nav_file))
+    nav_doc.remove_namespaces!
+    nav_doc.xpath('//nav/ol/li/a')
   end
 end

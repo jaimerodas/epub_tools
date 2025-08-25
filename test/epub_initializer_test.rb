@@ -18,34 +18,10 @@ class EpubInitializerTest < Minitest::Test
   def test_run_creates_basic_structure
     result = EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest).run
 
-    # Check return value is the destination directory
     assert_equal @dest, result
-
-    # Check directories
-    assert Dir.exist?(@dest)
-    assert File.directory?(File.join(@dest, 'META-INF'))
-    assert File.directory?(File.join(@dest, 'OEBPS'))
-    # Check files
-    mimetype = File.join(@dest, 'mimetype')
-
-    assert_path_exists mimetype
-    assert_equal 'application/epub+zip', File.read(mimetype)
-    assert_path_exists File.join(@dest, 'META-INF', 'container.xml')
-    assert_path_exists File.join(@dest, 'OEBPS', 'title.xhtml')
-    assert_path_exists File.join(@dest, 'OEBPS', 'nav.xhtml')
-    assert_path_exists File.join(@dest, 'OEBPS', 'package.opf')
-    assert_path_exists File.join(@dest, 'OEBPS', 'style.css')
-    # Check content of title.xhtml
-    title_page = File.read(File.join(@dest, 'OEBPS', 'title.xhtml'))
-
-    assert_includes title_page, "<h1 class=\"title\">#{@title}</h1>"
-    assert_includes title_page, "<p class=\"author\">by #{@author}</p>"
-    # Check package.opf metadata
-    opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
-
-    assert_includes opf, "<dc:title>#{@title}</dc:title>"
-    assert_includes opf, "<dc:creator>#{@author}</dc:creator>"
-    refute_includes opf, 'cover.xhtml'
+    verify_directory_structure
+    verify_required_files
+    verify_file_contents
   end
 
   def test_run_with_cover_image
@@ -137,5 +113,55 @@ class EpubInitializerTest < Minitest::Test
     opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
 
     refute_includes opf, 'cover-image'
+  end
+
+  private
+
+  def verify_directory_structure
+    assert Dir.exist?(@dest)
+    assert File.directory?(File.join(@dest, 'META-INF'))
+    assert File.directory?(File.join(@dest, 'OEBPS'))
+  end
+
+  def verify_required_files
+    required_files = [
+      'mimetype',
+      File.join('META-INF', 'container.xml'),
+      File.join('OEBPS', 'title.xhtml'),
+      File.join('OEBPS', 'nav.xhtml'),
+      File.join('OEBPS', 'package.opf'),
+      File.join('OEBPS', 'style.css')
+    ]
+
+    required_files.each do |file|
+      assert_path_exists File.join(@dest, file)
+    end
+  end
+
+  def verify_file_contents
+    verify_mimetype_content
+    verify_title_page_content
+    verify_opf_metadata
+  end
+
+  def verify_mimetype_content
+    mimetype = File.read(File.join(@dest, 'mimetype'))
+
+    assert_equal 'application/epub+zip', mimetype
+  end
+
+  def verify_title_page_content
+    title_page = File.read(File.join(@dest, 'OEBPS', 'title.xhtml'))
+
+    assert_includes title_page, "<h1 class=\"title\">#{@title}</h1>"
+    assert_includes title_page, "<p class=\"author\">by #{@author}</p>"
+  end
+
+  def verify_opf_metadata
+    opf = File.read(File.join(@dest, 'OEBPS', 'package.opf'))
+
+    assert_includes opf, "<dc:title>#{@title}</dc:title>"
+    assert_includes opf, "<dc:creator>#{@author}</dc:creator>"
+    refute_includes opf, 'cover.xhtml'
   end
 end

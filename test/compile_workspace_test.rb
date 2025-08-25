@@ -10,7 +10,7 @@ class CompileWorkspaceTest < Minitest::Test
   end
 
   def teardown
-    FileUtils.remove_entry(@tmp) if Dir.exist?(@tmp)
+    FileUtils.rm_rf(@tmp)
   end
 
   def test_initialize_sets_build_dir

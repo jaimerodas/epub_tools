@@ -29,10 +29,6 @@ Metrics/ClassLength:
   Exclude:
     - 'test/**/*'
 
-Metrics/AbcSize:
-  Exclude:
-    - 'test/**/*'
-
 Minitest/MultipleAssertions:
   Exclude:
     - 'test/**/*'

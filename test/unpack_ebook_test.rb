@@ -7,36 +7,59 @@ require 'zip'
 class UnpackEbookTest < Minitest::Test
   def setup
     @tmp = Dir.mktmpdir
-    # Build a minimal EPUB directory for zipping
     @build_dir = File.join(@tmp, 'build')
+    @epub_file = File.join(@tmp, 'test.epub')
+    @dest_dir = File.join(@tmp, 'output')
+
+    create_epub_build_directory
+    create_zip_file_from_build_dir
+  end
+
+  private
+
+  def create_epub_build_directory
     FileUtils.mkdir_p(File.join(@build_dir, 'META-INF'))
     FileUtils.mkdir_p(File.join(@build_dir, 'OEBPS'))
+
+    write_epub_files
+  end
+
+  def write_epub_files
     File.write(File.join(@build_dir, 'mimetype'), 'application/epub+zip')
     File.write(File.join(@build_dir, 'META-INF', 'container.xml'), '<container/>')
     File.write(File.join(@build_dir, 'OEBPS', 'title.xhtml'), '<html/>')
-
-    # Create .epub zip file
-    @epub_file = File.join(@tmp, 'test.epub')
-    # Create .epub zip file with absolute src paths to avoid cwd issues
-    Zip::File.open(@epub_file, Zip::File::CREATE) do |zip|
-      # Add mimetype first, uncompressed
-      mime_src = File.join(@build_dir, 'mimetype')
-      zip.add_stored('mimetype', mime_src)
-      # Add directories and files
-      Dir.glob(File.join(@build_dir, '**', '*'), File::FNM_DOTMATCH).sort.each do |src_path|
-        rel_path = src_path.sub(%r{^#{Regexp.escape(@build_dir)}/?}, '')
-        next if rel_path.empty? || rel_path == 'mimetype'
-
-        if File.directory?(src_path)
-          zip.mkdir(rel_path)
-        else
-          zip.add(rel_path, src_path)
-        end
-      end
-    end
-
-    @dest_dir = File.join(@tmp, 'output')
   end
+
+  def create_zip_file_from_build_dir
+    Zip::File.open(@epub_file, Zip::File::CREATE) do |zip|
+      add_mimetype_to_zip(zip)
+      add_remaining_files_to_zip(zip)
+    end
+  end
+
+  def add_mimetype_to_zip(zip)
+    mime_src = File.join(@build_dir, 'mimetype')
+    zip.add_stored('mimetype', mime_src)
+  end
+
+  def add_remaining_files_to_zip(zip)
+    Dir.glob(File.join(@build_dir, '**', '*'), File::FNM_DOTMATCH).sort.each do |src_path|
+      add_file_or_directory_to_zip(zip, src_path)
+    end
+  end
+
+  def add_file_or_directory_to_zip(zip, src_path)
+    rel_path = src_path.sub(%r{^#{Regexp.escape(@build_dir)}/?}, '')
+    return if rel_path.empty? || rel_path == 'mimetype'
+
+    if File.directory?(src_path)
+      zip.mkdir(rel_path)
+    else
+      zip.add(rel_path, src_path)
+    end
+  end
+
+  public
 
   def teardown
     FileUtils.remove_entry(@tmp)
