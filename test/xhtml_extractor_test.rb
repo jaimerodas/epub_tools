@@ -11,7 +11,7 @@ class XHTMLExtractorTest < Minitest::Test
     @tgt = File.join(@tmp, 'tgt')
     Dir.mkdir(@src)
     @file = File.join(@src, 'sample.epub')
-    Zip::File.open(@file, Zip::File::CREATE) do |zip|
+    Zip::File.open(@file, create: true) do |zip|
       zip.get_output_stream('chapter1.xhtml') { |f| f.write '<html><body><p>One</p></body></html>' }
       zip.get_output_stream('nav.xhtml') { |f| f.write '<html><body>Nav</body></html>' }
       zip.get_output_stream('folder/ch2.xhtml') { |f| f.write '<html><body><p>Two</p></body></html>' }

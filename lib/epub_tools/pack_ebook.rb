@@ -47,7 +47,7 @@ module EpubTools
     end
 
     def create_zip_file(target)
-      Zip::File.open(target, Zip::File::CREATE) do |zip|
+      Zip::File.open(target, create: true) do |zip|
         # Add mimetype first and uncompressed
         add_mimetype(zip)
         add_content_files(zip)

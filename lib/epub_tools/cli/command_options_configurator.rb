@@ -71,10 +71,10 @@ module EpubTools
         builder.with_title_option
                .with_author_option
                .with_custom_options do |opts, options|
-          opts.on('-o DIR', '--output-dir DIR', 'Destination EPUB directory (required)') do |v|
-            options[:destination] = v
-          end
-        end.with_cover_option
+                 opts.on('-o DIR', '--output-dir DIR', 'Destination EPUB directory (required)') do |v|
+                   options[:destination] = v
+                 end
+               end.with_cover_option
       end
 
       # Configure options for the 'pack' command
@@ -102,13 +102,13 @@ module EpubTools
         builder.with_title_option
                .with_author_option
                .with_custom_options do |opts, options|
-          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') do |v|
-            options[:source_dir] = v
-          end
-          opts.on('-o FILE', '--output FILE', 'EPUB to create (default: book title in source dir)') do |v|
-            options[:output_file] = v
-          end
-        end.with_cover_option.with_verbose_option
+                 opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') do |v|
+                   options[:source_dir] = v
+                 end
+                 opts.on('-o FILE', '--output FILE', 'EPUB to create (default: book title in source dir)') do |v|
+                   options[:output_file] = v
+                 end
+               end.with_cover_option.with_verbose_option
       end
     end
   end

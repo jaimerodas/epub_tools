@@ -31,7 +31,7 @@ class UnpackEbookTest < Minitest::Test
   end
 
   def create_zip_file_from_build_dir
-    Zip::File.open(@epub_file, Zip::File::CREATE) do |zip|
+    Zip::File.open(@epub_file, create: true) do |zip|
       add_mimetype_to_zip(zip)
       add_remaining_files_to_zip(zip)
     end

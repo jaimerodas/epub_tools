@@ -22,5 +22,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'nokogiri', '~> 1.18'
   spec.add_dependency 'rake', '~> 13.2'
-  spec.add_dependency 'rubyzip', '~> 2.4'
+  spec.add_dependency 'rubyzip', '~> 3.2'
 end

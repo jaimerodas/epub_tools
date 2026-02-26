@@ -54,9 +54,10 @@ module EpubTools
     def extract_entry_if_xhtml(entry, epub_name, extracted_files)
       return unless xhtml_entry?(entry)
 
-      output_path = File.join(@target_dir, "#{epub_name}_#{File.basename(entry.name)}")
+      renamed = "#{epub_name}_#{File.basename(entry.name)}"
+      output_path = File.join(@target_dir, renamed)
       FileUtils.mkdir_p(File.dirname(output_path))
-      entry.extract(output_path) { true }
+      entry.extract(renamed, destination_directory: @target_dir) { true }
       log output_path
       extracted_files << output_path
     end

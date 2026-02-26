@@ -42,12 +42,11 @@ module EpubTools
     end
 
     def extract_entry(entry)
-      dest_path = File.join(@output_dir, entry.name)
       if entry.directory?
-        FileUtils.mkdir_p(dest_path)
+        FileUtils.mkdir_p(File.join(@output_dir, entry.name))
       else
-        FileUtils.mkdir_p(File.dirname(dest_path))
-        entry.extract(dest_path) { true }
+        FileUtils.mkdir_p(File.join(@output_dir, File.dirname(entry.name)))
+        entry.extract(destination_directory: @output_dir) { true }
       end
     end
 
