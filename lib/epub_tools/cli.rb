@@ -27,6 +27,7 @@ module EpubTools
       registry.register('pack', EpubTools::PackEbook, %i[input_dir output_file], { verbose: true })
       registry.register('unpack', EpubTools::UnpackEbook, [:epub_file], { verbose: true })
       registry.register('compile', EpubTools::CompileBook, %i[title author source_dir], { verbose: true })
+      registry.register('append', EpubTools::AppendBook, %i[source_dir target_epub], { verbose: true })
     end
   end
 end

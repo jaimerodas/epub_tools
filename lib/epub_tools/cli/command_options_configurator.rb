@@ -96,6 +96,19 @@ module EpubTools
         end.with_verbose_option
       end
 
+      # Configure options for the 'append' command
+      # @param builder [OptionBuilder] Option builder instance
+      def configure_append_options(builder)
+        builder.with_custom_options do |opts, options|
+          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to append (required)') do |v|
+            options[:source_dir] = v
+          end
+          opts.on('-t FILE', '--target-epub FILE', 'Existing EPUB file to append to (required)') do |v|
+            options[:target_epub] = v
+          end
+        end.with_verbose_option
+      end
+
       # Configure options for the 'compile' command
       # @param builder [OptionBuilder] Option builder instance
       def configure_compile_options(builder)

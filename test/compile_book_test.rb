@@ -101,11 +101,10 @@ class CompileBookTest < Minitest::Test
       output_file: 'test.epub'
     )
 
-    # Mock the workflow methods to avoid complex file setup
     def cb.extract_xhtmls; end
     def cb.split_xhtmls; end
     def cb.validate_chapters; end
-    def cb.initialize_epub; end
+    def cb.before_add_chapters; end
     def cb.add_chapters; end
     def cb.pack_epub; end
 

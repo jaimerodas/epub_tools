@@ -92,3 +92,72 @@ class SplitChaptersTest < Minitest::Test
     assert_includes ch2, 'Second paragraph'
   end
 end
+
+class SplitChaptersContinuedTest < Minitest::Test
+  def setup
+    @tmp = Dir.mktmpdir
+    @input = File.join(@tmp, 'input.xhtml')
+    @out = File.join(@tmp, 'out')
+    content = <<~HTML
+      <?xml version="1.0"?>
+      <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+          <p>Chapter 1</p>
+          <p>First paragraph</p>
+          <p>Chapter 1 (Continued)</p>
+          <p>Continued text</p>
+          <p>Chapter 2</p>
+          <p>Second paragraph</p>
+        </body>
+      </html>
+    HTML
+    File.write(@input, content)
+  end
+
+  def teardown
+    FileUtils.remove_entry(@tmp)
+  end
+
+  def test_splits_continued_chapters
+    result = EpubTools::SplitChapters.new(
+      input_file: @input, book_title: 'Test', output_dir: @out, output_prefix: 'chapter'
+    ).run
+
+    assert_equal 3, result.size
+    assert_includes result, File.join(@out, 'chapter_1.xhtml')
+    assert_includes result, File.join(@out, 'chapter_1_5.xhtml')
+    assert_includes result, File.join(@out, 'chapter_2.xhtml')
+  end
+
+  def test_continued_chapter_content
+    EpubTools::SplitChapters.new(
+      input_file: @input, book_title: 'Test', output_dir: @out, output_prefix: 'chapter'
+    ).run
+
+    continued = File.read(File.join(@out, 'chapter_1_5.xhtml'))
+
+    assert_includes continued, '<h1>Chapter 1.5</h1>'
+    assert_includes continued, 'Continued text'
+  end
+
+  def test_continued_marker_case_insensitive
+    content = <<~HTML
+      <?xml version="1.0"?>
+      <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+          <p>Chapter 5</p>
+          <p>Text</p>
+          <p>Chapter 5 (continued)</p>
+          <p>More text</p>
+        </body>
+      </html>
+    HTML
+    File.write(@input, content)
+
+    result = EpubTools::SplitChapters.new(
+      input_file: @input, book_title: 'Test', output_dir: @out, output_prefix: 'chapter'
+    ).run
+
+    assert_includes result, File.join(@out, 'chapter_5_5.xhtml')
+  end
+end

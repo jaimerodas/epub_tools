@@ -59,10 +59,8 @@ module EpubTools
     end
 
     def move_chapters
-      # Sort by chapter number (numeric)
       chapter_files = Dir.glob(File.join(@chapters_dir, '*.xhtml')).sort_by do |path|
-        # extract first integer from filename (e.g. chapter_10.xhtml -> 10)
-        File.basename(path)[/\d+/].to_i
+        chapter_sort_key(File.basename(path))
       end
 
       raise ArgumentError, "No .xhtml files found in '#{@chapters_dir}'" if chapter_files.empty?
@@ -73,8 +71,17 @@ module EpubTools
       chapter_files.map { |f| File.basename(f) }
     end
 
+    def chapter_sort_key(filename)
+      basename = File.basename(filename, '.xhtml')
+      if (m = basename.match(/_(\d+)_5\z/))
+        m[1].to_f + 0.5
+      else
+        basename[/\d+/].to_f
+      end
+    end
+
     def chapter_id(filename)
-      match = filename.match(/chapter_(\d+)\.xhtml/)
+      match = filename.match(/chapter_(\d+(?:_5)?)\.xhtml/)
       match ? "chap#{match[1]}" : File.basename(filename, '.xhtml')
     end
 
@@ -107,8 +114,14 @@ module EpubTools
     end
 
     def format_chapter_label(filename)
-      label = File.basename(filename, '.xhtml').gsub('_', ' ').capitalize
-      label == 'Chapter 0' ? 'Prologue' : label
+      basename = File.basename(filename, '.xhtml')
+      return 'Prologue' if basename == 'chapter_0'
+
+      if (m = basename.match(/chapter_(\d+)_5/))
+        "Chapter #{m[1]}.5"
+      else
+        basename.gsub('_', ' ').capitalize
+      end
     end
 
     def update_opf_for_file(doc, manifest, spine, filename)

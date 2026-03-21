@@ -22,6 +22,7 @@ class CLICommandsTest < Minitest::Test
     assert_includes output, 'pack'
     assert_includes output, 'unpack'
     assert_includes output, 'compile'
+    assert_includes output, 'append'
   end
 
   def test_show_version
@@ -90,6 +91,14 @@ class CLICommandsTest < Minitest::Test
     assert_match(/Usage: epub-tools pack \[options\]/, output)
     assert_includes output, '--input-dir DIR'
     assert_includes output, '--output-file FILE'
+  end
+
+  def test_append_command
+    output = `#{@bin_path} append --help`
+
+    assert_match(/Usage: epub-tools append \[options\]/, output)
+    assert_includes output, '--source-dir DIR'
+    assert_includes output, '--target-epub FILE'
   end
 
   def test_unpack_command

@@ -71,10 +71,14 @@ gem install ./epub_tools-*.gem
   - `AddChapters`: Adds chapter files to existing EPUB
   - `PackEbook`: Packages EPUB directories into .epub files
   - `UnpackEbook`: Unpacks .epub files into directories
-  - `CompileBook`: Full workflow combining multiple operations (uses workspace pattern)
+- **Workflow Classes**: Orchestrators built on a shared base class
+  - `BookBuilder`: Base class with template method pattern (extract → split → validate → add → pack)
+  - `CompileBook`: Creates a new EPUB from source EPUBs (inherits BookBuilder)
+  - `AppendBook`: Appends chapters from source EPUBs to an existing EPUB (inherits BookBuilder)
 - **Supporting Classes**: SOLID-designed helper classes
-  - `CompileWorkspace`: Manages build directories for CompileBook
+  - `CompileWorkspace`: Manages build directories for book-building workflows
   - `ChapterValidator`: Validates chapter sequence completeness
+  - `ChapterMarkerDetector`: Detects chapter boundary markers (Chapter N, Chapter N (continued), Prologue)
   - `EpubConfiguration`: Configuration object for EPUB initialization
   - `XhtmlGenerator`: Generates XHTML templates for EPUB content
   - `EpubMetadataBuilder`: Builds OPF metadata content
