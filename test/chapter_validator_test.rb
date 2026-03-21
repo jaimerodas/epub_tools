@@ -37,11 +37,38 @@ class ChapterValidatorTest < Minitest::Test
     assert_silent { @validator.validate }
   end
 
+  def test_validates_sequence_with_half_chapters
+    create_chapter_files([1, 2, 3])
+    create_half_chapter_files([2])
+
+    assert_silent { @validator.validate }
+  end
+
+  def test_validates_sequence_without_half_chapters_present
+    create_chapter_files([1, 2, 3])
+
+    assert_silent { @validator.validate }
+  end
+
+  def test_raises_on_missing_integer_despite_half_chapter
+    create_chapter_files([1, 3]) # Missing 2
+    create_half_chapter_files([1])
+
+    error = assert_raises(RuntimeError) { @validator.validate }
+    assert_match(/Missing chapter numbers: 2/, error.message)
+  end
+
   private
 
   def create_chapter_files(numbers)
     numbers.each do |num|
       File.write(File.join(@tmp, "chapter_#{num}.xhtml"), '<html></html>')
+    end
+  end
+
+  def create_half_chapter_files(numbers)
+    numbers.each do |num|
+      File.write(File.join(@tmp, "chapter_#{num}_5.xhtml"), '<html></html>')
     end
   end
 end

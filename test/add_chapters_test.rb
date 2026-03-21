@@ -121,3 +121,73 @@ class AddChaptersTest < Minitest::Test
     nav_doc.xpath('//nav/ol/li/a')
   end
 end
+
+class AddChaptersHalfChapterTest < Minitest::Test
+  def setup
+    @tmp = Dir.mktmpdir
+    @chapters_dir = File.join(@tmp, 'chapters')
+    @epub_dir = File.join(@tmp, 'OEBPS')
+    Dir.mkdir(@chapters_dir)
+    Dir.mkdir(@epub_dir)
+    create_chapter_files
+    create_opf_and_nav
+  end
+
+  def teardown
+    FileUtils.remove_entry(@tmp)
+  end
+
+  def test_half_chapter_sorting_and_labels
+    result = EpubTools::AddChapters.new(chapters_dir: @chapters_dir, oebps_dir: @epub_dir).run
+
+    assert_equal %w[chapter_1.xhtml chapter_1_5.xhtml chapter_2.xhtml], result
+  end
+
+  def test_half_chapter_nav_label
+    EpubTools::AddChapters.new(chapters_dir: @chapters_dir, oebps_dir: @epub_dir).run
+
+    nav_doc = Nokogiri::XML(File.read(File.join(@epub_dir, 'nav.xhtml')))
+    nav_doc.remove_namespaces!
+    links = nav_doc.xpath('//nav/ol/li/a')
+
+    assert_equal 'Chapter 1', links[0].text
+    assert_equal 'Chapter 1.5', links[1].text
+    assert_equal 'Chapter 2', links[2].text
+  end
+
+  def test_half_chapter_opf_id
+    EpubTools::AddChapters.new(chapters_dir: @chapters_dir, oebps_dir: @epub_dir).run
+
+    doc = Nokogiri::XML(File.read(File.join(@epub_dir, 'package.opf')))
+    ids = doc.xpath('//xmlns:manifest/xmlns:item').map { |i| i['id'] }
+
+    assert_includes ids, 'chap1_5'
+  end
+
+  private
+
+  def create_chapter_files
+    File.write(File.join(@chapters_dir, 'chapter_1.xhtml'), '<html><body>Ch1</body></html>')
+    File.write(File.join(@chapters_dir, 'chapter_1_5.xhtml'), '<html><body>Ch1.5</body></html>')
+    File.write(File.join(@chapters_dir, 'chapter_2.xhtml'), '<html><body>Ch2</body></html>')
+  end
+
+  def create_opf_and_nav
+    File.write(File.join(@epub_dir, 'package.opf'), <<~XML)
+      <?xml version="1.0"?>
+      <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="en">
+        <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"></metadata>
+        <manifest></manifest>
+        <spine></spine>
+      </package>
+    XML
+    File.write(File.join(@epub_dir, 'nav.xhtml'), <<~XHTML)
+      <?xml version="1.0" encoding="utf-8"?>
+      <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
+        <body>
+          <nav epub:type="toc" id="toc"><ol></ol></nav>
+        </body>
+      </html>
+    XHTML
+  end
+end

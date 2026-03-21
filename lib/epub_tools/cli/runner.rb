@@ -107,6 +107,7 @@ module EpubTools
         puts '  pack      Package an EPUB directory into a .epub file'
         puts '  unpack    Unpack an EPUB file into a directory'
         puts '  compile   Takes EPUBs in a dir and splits, cleans, and compiles into a single EPUB.'
+        puts '  append    Extracts and splits EPUBs from a dir and appends them to an existing EPUB.'
       end
     end
   end
