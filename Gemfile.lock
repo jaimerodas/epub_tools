@@ -79,7 +79,7 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
     webrick (1.9.2)
-    yard (0.9.38)
+    yard (0.9.42)
 
 PLATFORMS
   aarch64-linux-gnu
@@ -102,7 +102,7 @@ DEPENDENCIES
   rubyzip (~> 3.2)
   simplecov
   webrick (~> 1.9)
-  yard (~> 0.9.37)
+  yard (~> 0.9.42)
 
 RUBY VERSION
    ruby 3.4.5p51

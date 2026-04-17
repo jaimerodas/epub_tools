@@ -19,5 +19,5 @@ end
 group :doc do
   gem 'rdoc', '~> 7.2'
   gem 'webrick', '~> 1.9'
-  gem 'yard', '~> 0.9.37'
+  gem 'yard', '~> 0.9.42'
 end
