@@ -1,8 +1,6 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require 'nokogiri'
-require 'yaml'
 
 module EpubTools
   # Cleans Google Docs XHTMLs
@@ -12,7 +10,7 @@ module EpubTools
   #
   # - Removes any <tt><br /></tt> or <tt><hr /></tt> tags.
   # - Removes empty <tt><p></tt> tags.
-  # - Using the +class_config+, it removes <tt><span></tt> tags that are used for bold or italics and
+  # - Using the +classes+, it removes <tt><span></tt> tags that are used for bold or italics and
   #   replaces them with <tt><b></tt> or <tt><i></tt> tags.
   # - Unwraps any <tt><span></tt> tags that have no classes assigned.
   # - Outputs everything to a cleanly formatted +.xhtml+
@@ -20,12 +18,11 @@ module EpubTools
     # Initializes the class
     # @param options [Hash] Configuration options
     # @option options [String] :filename The path to the xhtml to clean (required)
-    # @option options [String] :class_config Path to a YAML file containing the bold and italic classes to check
-    #                          (default: 'text_style_classes.yaml')
+    # @option options [Hash{Symbol => Array<String>}] :classes The +:italics+ and +:bolds+ class names, as found by
+    #                          {StyleFinder}[rdoc-ref:EpubTools::StyleFinder] (required)
     def initialize(options = {})
       @filename = options.fetch(:filename)
-      class_config = options[:class_config] || 'text_style_classes.yaml'
-      @classes = YAML.load_file(class_config).transform_keys(&:to_sym)
+      @classes = options.fetch(:classes)
     end
 
     # Runs the cleaner

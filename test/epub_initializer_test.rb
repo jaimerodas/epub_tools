@@ -24,6 +24,22 @@ class EpubInitializerTest < Minitest::Test
     verify_file_contents
   end
 
+  def test_style_comes_from_the_gem_not_the_working_directory
+    Dir.chdir(@tmp) { EpubTools::EpubInitializer.new(title: @title, author: @author, destination: @dest).run }
+
+    assert_equal File.read(File.expand_path('../style.css', __dir__)), File.read(File.join(@dest, 'OEBPS', 'style.css'))
+  end
+
+  def test_title_and_author_are_escaped
+    EpubTools::EpubInitializer.new(title: 'Tom & Jerry', author: 'A <B>', destination: @dest).run
+    opf = strict_xml('package.opf')
+    dc = { 'dc' => 'http://purl.org/dc/elements/1.1/' }
+
+    assert_equal 'Tom & Jerry', opf.at_xpath('//dc:title', dc).text
+    assert_equal 'A <B>', opf.at_xpath('//dc:creator', dc).text
+    assert_equal 'by A <B>', strict_xml('title.xhtml').at_xpath('//xmlns:p[@class="author"]').text
+  end
+
   def test_run_with_cover_image
     # create dummy image
     cover = File.join(@tmp, 'cover.png')
@@ -116,6 +132,8 @@ class EpubInitializerTest < Minitest::Test
   end
 
   private
+
+  def strict_xml(name) = Nokogiri::XML(File.read(File.join(@dest, 'OEBPS', name)), &:strict)
 
   def verify_directory_structure
     assert Dir.exist?(@dest)

@@ -4,7 +4,6 @@ require 'nokogiri'
 require 'fileutils'
 require 'tmpdir'
 require_relative 'loggable'
-require_relative 'xhtml_generator'
 require_relative 'unpack_ebook'
 require_relative 'pack_ebook'
 
@@ -77,8 +76,23 @@ module EpubTools
 
     def image_name = "cover#{@extension}"
 
-    # The cover page shows only the image, so it needs no title or author
-    def cover_page = XhtmlGenerator.new(title: nil, author: nil).build_cover_page(image_name)
+    def cover_page
+      <<~XHTML
+        <?xml version="1.0" encoding="UTF-8"?>
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Cover</title>
+            <link rel="stylesheet" type="text/css" href="style.css"/>
+          </head>
+          <body>
+            <div class="cover-image">
+              <img src="#{image_name}" alt="Cover"/>
+            </div>
+          </body>
+        </html>
+      XHTML
+    end
 
     def remove_old_cover(opf, oebps_dir)
       opf.xpath('//xmlns:item[@id="cover-image" or contains(@properties, "cover-image")]').each do |item|

@@ -113,4 +113,18 @@ class CompileBookTest < Minitest::Test
 
     assert_equal 'test.epub', result
   end
+
+  def test_relative_output_is_written_to_working_directory
+    book = File.join(@tmp, 'part')
+    FileUtils.mkdir_p(File.join(book, 'OEBPS'))
+    File.write(File.join(book, 'mimetype'), 'application/epub+zip')
+    File.write(File.join(book, 'OEBPS', 'text.xhtml'), '<html><body><p>Chapter 1</p><p>Text</p></body></html>')
+    EpubTools::PackEbook.new(input_dir: book, output_file: File.join(@source, 'part.epub')).run
+
+    Dir.chdir(@tmp) do
+      EpubTools::CompileBook.new(title: @title, author: @author, source_dir: @source, output_file: 'out.epub').run
+    end
+
+    assert_path_exists File.join(@tmp, 'out.epub')
+  end
 end

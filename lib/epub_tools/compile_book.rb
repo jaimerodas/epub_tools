@@ -24,7 +24,7 @@ module EpubTools
 
     def before_add_chapters
       log 'Initializing new EPUB...'
-      options = { title: title, author: author, destination: @workspace.epub_dir }
+      options = { title: title, author: author, destination: epub_dir }
       options[:cover_image] = cover_image if cover_image
       EpubInitializer.new(options).run
     end

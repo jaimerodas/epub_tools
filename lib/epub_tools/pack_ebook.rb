@@ -17,13 +17,7 @@ module EpubTools
     # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
     def initialize(options = {})
       @input_dir = File.expand_path(options.fetch(:input_dir))
-      default_name = "#{File.basename(@input_dir)}.epub"
-      output_file = options[:output_file]
-      @output_file = if output_file.nil? || output_file.empty?
-                       default_name
-                     else
-                       output_file
-                     end
+      @output_file = options[:output_file].to_s.empty? ? "#{File.basename(@input_dir)}.epub" : options[:output_file]
       @verbose = options[:verbose] || false
     end
 
@@ -48,8 +42,7 @@ module EpubTools
 
     def create_zip_file(target)
       Zip::File.open(target, create: true) do |zip|
-        # Add mimetype first and uncompressed
-        add_mimetype(zip)
+        zip.add_stored('mimetype', 'mimetype') # EPUB readers need it first and uncompressed
         add_content_files(zip)
       end
     end
@@ -71,11 +64,6 @@ module EpubTools
       return if File.file?(mimetype)
 
       raise ArgumentError, "Error: 'mimetype' file missing in #{@input_dir}"
-    end
-
-    def add_mimetype(zip)
-      # Add mimetype first and uncompressed (Stored)
-      zip.add_stored('mimetype', 'mimetype')
     end
   end
 end

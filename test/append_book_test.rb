@@ -45,7 +45,7 @@ class AppendBookTest < Minitest::Test
 
   def test_detect_conflicts_raises_on_overlap
     ab = build_append_book
-    setup_conflict_dirs(ab, new_chapters: [1, 2], existing_chapters: [1])
+    setup_conflict_dirs(new_chapters: [1, 2], existing_chapters: [1])
 
     error = assert_raises(ArgumentError) { ab.send(:detect_conflicts) }
     assert_match(/chapters 1 already exist/, error.message)
@@ -53,14 +53,14 @@ class AppendBookTest < Minitest::Test
 
   def test_detect_conflicts_passes_with_no_overlap
     ab = build_append_book
-    setup_conflict_dirs(ab, new_chapters: [5], existing_chapters: [1, 2])
+    setup_conflict_dirs(new_chapters: [5], existing_chapters: [1, 2])
 
     ab.send(:detect_conflicts)
   end
 
   def test_detect_conflicts_with_lettered_chapters
     ab = build_append_book
-    setup_conflict_dirs(ab, new_chapters: %w[3a 4], existing_chapters: %w[3 3a])
+    setup_conflict_dirs(new_chapters: %w[3a 4], existing_chapters: %w[3 3a])
 
     error = assert_raises(ArgumentError) { ab.send(:detect_conflicts) }
     assert_match(/chapters 3a already exist/, error.message)
@@ -74,10 +74,6 @@ class AppendBookTest < Minitest::Test
 
     FileUtils.touch(File.join(chapters_dir, 'chapter_3_5.xhtml'))
     FileUtils.touch(File.join(oebps_dir, 'chapter_3_5.xhtml'))
-
-    workspace = ab.instance_variable_get(:@workspace)
-    workspace.instance_variable_set(:@chapters_dir, chapters_dir)
-    workspace.instance_variable_set(:@epub_dir, File.join(@tmp, 'epub'))
 
     error = assert_raises(ArgumentError) { ab.send(:detect_conflicts) }
     assert_match(/3\.5 already exist/, error.message)
@@ -120,16 +116,12 @@ class AppendBookTest < Minitest::Test
     )
   end
 
-  def setup_conflict_dirs(append_book, new_chapters:, existing_chapters:)
+  def setup_conflict_dirs(new_chapters:, existing_chapters:)
     chapters_dir = File.join(@tmp, 'chapters')
     oebps_dir = File.join(@tmp, 'epub', 'OEBPS')
     FileUtils.mkdir_p([chapters_dir, oebps_dir])
 
     new_chapters.each { |n| FileUtils.touch(File.join(chapters_dir, "chapter_#{n}.xhtml")) }
     existing_chapters.each { |n| FileUtils.touch(File.join(oebps_dir, "chapter_#{n}.xhtml")) }
-
-    workspace = append_book.instance_variable_get(:@workspace)
-    workspace.instance_variable_set(:@chapters_dir, chapters_dir)
-    workspace.instance_variable_set(:@epub_dir, File.join(@tmp, 'epub'))
   end
 end

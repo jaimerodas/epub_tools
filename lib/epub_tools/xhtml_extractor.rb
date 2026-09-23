@@ -24,12 +24,7 @@ module EpubTools
     # Runs the extraction process
     # @return [Array<String>] Paths to all extracted XHTML files
     def run
-      all_extracted_files = []
-      epub_files.each do |epub_path|
-        extracted = extract_xhtmls_from(epub_path)
-        all_extracted_files.concat(extracted) if extracted
-      end
-      all_extracted_files
+      epub_files.flat_map { |epub_path| extract_xhtmls_from(epub_path) || [] }
     end
 
     private
@@ -56,7 +51,6 @@ module EpubTools
 
       renamed = "#{epub_name}_#{File.basename(entry.name)}"
       output_path = File.join(@target_dir, renamed)
-      FileUtils.mkdir_p(File.dirname(output_path))
       entry.extract(renamed, destination_directory: @target_dir) { true }
       log output_path
       extracted_files << output_path

@@ -59,16 +59,12 @@ gem install ./epub_tools-*.gem
 ### Core Components
 
 - **Main Module** (`lib/epub_tools.rb`): Entry point that requires all components
-- **CLI System** (`lib/epub_tools/cli/`): Object-oriented command-line interface
-  - `Runner`: Main CLI runner that handles command dispatch
-  - `CommandRegistry`: Manages available commands and their configurations
-  - `OptionBuilder`: Builds command-line option parsers
-  - `CommandOptionsConfigurator`: Handles command-specific option configuration
+- **CLI** (`lib/epub_tools/cli.rb`): `CLI::COMMANDS` maps each command to its class, summary and flags
 - **Core Classes**: Individual operation classes for EPUB manipulation
   - `XHTMLExtractor`: Extracts XHTML files from EPUB archives
   - `PDFConverter`: Converts chapter PDFs (named `12a Title.pdf`) into chapter XHTMLs via poppler's `pdftohtml -xml`
-  - `SplitChapters`: Splits XHTML files into separate chapters
-  - `EpubInitializer`: Creates new EPUB directory structure (uses configuration pattern)
+  - `SplitChapters`: Splits XHTML files into separate chapters at Chapter N / Chapter N (continued) / Prologue markers
+  - `EpubInitializer`: Creates new EPUB directory structure
   - `AddChapters`: Adds chapter files to existing EPUB
   - `PackEbook`: Packages EPUB directories into .epub files
   - `UnpackEbook`: Unpacks .epub files into directories
@@ -77,30 +73,24 @@ gem install ./epub_tools-*.gem
   - `BookBuilder`: Base class with template method pattern (extract → split → convert PDFs → validate → add → pack)
   - `CompileBook`: Creates a new EPUB from source EPUBs (inherits BookBuilder)
   - `AppendBook`: Appends chapters from source EPUBs to an existing EPUB (inherits BookBuilder)
-- **Supporting Classes**: SOLID-designed helper classes
-  - `CompileWorkspace`: Manages build directories for book-building workflows
+- **Supporting Classes**
   - `ChapterValidator`: Validates chapter sequence completeness
-  - `ChapterMarkerDetector`: Detects chapter boundary markers (Chapter N, Chapter N (continued), Prologue)
   - `PDFLayout`: Rebuilds paragraphs, italics, scene breaks and lists from `pdftohtml -xml` line positions
   - `ChapterOrder`: Reading order of chapter files (1, 1_5, 1a, 1b, 2); inserts added chapters in place
-  - `EpubConfiguration`: Configuration object for EPUB initialization
-  - `XhtmlGenerator`: Generates XHTML templates for EPUB content
-  - `EpubMetadataBuilder`: Builds OPF metadata content
-  - `EpubFileWriter`: Handles EPUB file writing operations
+  - `StyleFinder` / `XHTMLCleaner`: Find Google Docs' bold/italic classes and clean split chapters with them
 
 ### CLI Architecture
 
-The CLI uses a registry-based system where:
-1. Commands are registered in `cli.rb` with their class, required parameters, and defaults
-2. The `Runner` dispatches to the appropriate command class
-3. The `CommandOptionsConfigurator` handles command-specific option setup
+1. Each command is an entry in `CLI::COMMANDS`: its class, usage summary, and flags as `[short, long, description, option key]`
+2. Flags whose description ends in `(required)` are enforced; commands get `-q/--quiet` unless marked `verbose: false`
+3. `CLI.run` parses the flags and calls `command_class.new(options).run`
 4. Each command class implements a `run` method and uses the `Loggable` mixin for verbose output
 
 ### Dependencies
 
 - **nokogiri**: XML/HTML parsing for EPUB content
 - **rubyzip**: ZIP file manipulation for EPUB packaging
-- **rake**: Build tasks and testing
+- **rake**: Build tasks and testing (development only)
 - **minitest**: Testing framework
 - **rubocop**: Code linting with custom configuration
 - **simplecov**: Test coverage reporting
@@ -119,14 +109,12 @@ The CLI uses a registry-based system where:
 Tests use Minitest with:
 - `test_helper.rb` sets up SimpleCov coverage
 - Tests in `test/` directory follow `*_test.rb` naming
-- CLI tests verify command registration and option parsing
+- CLI tests verify option parsing and dispatch; `cli_commands_test.rb` runs the real executable
 - Individual component tests verify core functionality
 
 ### Code Quality
 
-The codebase follows SOLID principles with:
-- **Single Responsibility**: Classes have focused, well-defined purposes
-- **Open/Closed**: Extensible design through composition and dependency injection
-- **Dependency Inversion**: Configuration objects and factory patterns
+- One class per operation, each with an options hash and a `run` method
+- Prefer plain methods, stdlib and the existing dependencies over new helper classes
 
 RuboCop configuration excludes test files from metrics cops while maintaining strict standards for production code.

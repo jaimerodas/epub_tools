@@ -4,12 +4,11 @@ ruby '>= 3.2'
 
 source 'https://rubygems.org'
 
-gem 'nokogiri', '~> 1.19'
-gem 'rake', '~> 13.2'
-gem 'rubyzip', '~> 3.2'
+gemspec
 
 group :test, :development do
   gem 'minitest', '~> 6.0'
+  gem 'rake', '~> 13.2'
   gem 'rubocop', '~> 1.75', require: false
   gem 'rubocop-minitest', '~> 0.39.0', require: false
   gem 'rubocop-rake', '~> 0.7.1', require: false

@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
-require 'yaml'
 require_relative 'test_helper'
 require_relative '../lib/epub_tools/xhtml_cleaner'
 
 class XHTMLCleanerTest < Minitest::Test
   def setup
     @tmp = Dir.mktmpdir
-    @config = File.join(@tmp, 'config.yaml')
-    File.write(@config, { 'italics' => ['itclass'], 'bolds' => ['boldclass'] }.to_yaml)
     @file = File.join(@tmp, 'test.xhtml')
     content = <<~HTML
       <?xml version="1.0" encoding="UTF-8"?>
@@ -30,7 +27,7 @@ class XHTMLCleanerTest < Minitest::Test
   end
 
   def test_cleaner_removes_and_transforms_tags
-    result = EpubTools::XHTMLCleaner.new(filename: @file, class_config: @config).run
+    result = EpubTools::XHTMLCleaner.new(filename: @file, classes: { italics: ['itclass'], bolds: ['boldclass'] }).run
 
     # Check return value is the filename that was cleaned
     assert_equal @file, result

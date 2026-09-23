@@ -7,7 +7,6 @@ require_relative 'split_chapters'
 require_relative 'pdf_converter'
 require_relative 'add_chapters'
 require_relative 'pack_ebook'
-require_relative 'compile_workspace'
 require_relative 'chapter_validator'
 
 module EpubTools
@@ -23,7 +22,6 @@ module EpubTools
       @source_dir = options.fetch(:source_dir)
       @build_dir  = options[:build_dir] || File.join(Dir.pwd, '.epub_tools_build')
       @verbose    = options[:verbose] || false
-      @workspace  = CompileWorkspace.new(@build_dir)
     end
 
     # Run the full build workflow
@@ -49,36 +47,28 @@ module EpubTools
     # Hook: called after validation, before adding chapters
     def before_add_chapters; end
 
-    # Subclasses must implement: the book title used when splitting chapters
-    def book_title
-      raise NotImplementedError, "#{self.class} must implement #book_title"
-    end
-
-    # Subclasses must implement: the output file path for pack_epub
-    def output_path
-      raise NotImplementedError, "#{self.class} must implement #output_path"
-    end
+    # Subclasses also define +book_title+ (used when splitting chapters) and +output_path+ (the EPUB to write)
 
     def setup_workspace
-      @workspace.clean
-      @workspace.prepare_directories
+      FileUtils.rm_rf(build_dir)
+      FileUtils.mkdir_p([xhtml_dir, chapters_dir])
       log 'Preparing build directories...'
     end
 
     def extract_xhtmls
       log "Extracting XHTML files from EPUBs in '#{source_dir}'..."
-      XHTMLExtractor.new(source_dir: source_dir, target_dir: @workspace.xhtml_dir, verbose: verbose).run
+      XHTMLExtractor.new(source_dir: source_dir, target_dir: xhtml_dir, verbose: verbose).run
     end
 
     def split_xhtmls
-      Dir.glob(File.join(@workspace.xhtml_dir, '*.xhtml')).each { |f| split_xhtml_file(f) }
+      Dir.glob(File.join(xhtml_dir, '*.xhtml')).each { |f| split_xhtml_file(f) }
     end
 
     def split_xhtml_file(xhtml_file)
       log "Splitting '#{File.basename(xhtml_file, '.xhtml')}'..."
       SplitChapters.new(
         input_file: xhtml_file, book_title: book_title,
-        output_dir: @workspace.chapters_dir, output_prefix: 'chapter', verbose: verbose
+        output_dir: chapters_dir, verbose: verbose
       ).run
     end
 
@@ -87,18 +77,18 @@ module EpubTools
 
       log "Converting PDFs in '#{source_dir}'..."
       PDFConverter.new(
-        source_dir: source_dir, book_title: book_title, output_dir: @workspace.chapters_dir, verbose: verbose
+        source_dir: source_dir, book_title: book_title, output_dir: chapters_dir, verbose: verbose
       ).run
     end
 
     def validate_chapters
-      ChapterValidator.new(chapters_dir: @workspace.chapters_dir, verbose: verbose).validate
+      ChapterValidator.new(chapters_dir: chapters_dir, verbose: verbose).validate
     end
 
     def add_chapters
       log 'Adding chapters to EPUB...'
       AddChapters.new(
-        chapters_dir: @workspace.chapters_dir,
+        chapters_dir: chapters_dir,
         oebps_dir: epub_oebps_dir,
         verbose: verbose
       ).run
@@ -106,15 +96,19 @@ module EpubTools
 
     def pack_epub
       log "Building EPUB '#{output_path}'..."
-      PackEbook.new(input_dir: @workspace.epub_dir, output_file: output_path, verbose: verbose).run
+      # Expanded here: PackEbook puts a relative path next to epub_dir, inside the build dir that gets deleted
+      PackEbook.new(input_dir: epub_dir, output_file: File.expand_path(output_path), verbose: verbose).run
     end
 
     def finalize_and_cleanup
       log "Done. Output EPUB: #{File.expand_path(output_path)}"
-      @workspace.clean
+      FileUtils.rm_rf(build_dir)
       output_path
     end
 
-    def epub_oebps_dir = File.join(@workspace.epub_dir, 'OEBPS')
+    def xhtml_dir = File.join(build_dir, 'xhtml')
+    def chapters_dir = File.join(build_dir, 'chapters')
+    def epub_dir = File.join(build_dir, 'epub')
+    def epub_oebps_dir = File.join(epub_dir, 'OEBPS')
   end
 end

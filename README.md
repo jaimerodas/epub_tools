@@ -121,7 +121,7 @@ EpubTools::XHTMLExtractor.new(
 # Split a multi-chapter XHTML into individual chapter files
 EpubTools::SplitChapters.new(
   input_file: 'xhtml_output/chapter1.xhtml', book_title: 'My Book',
-  output_dir: 'chapters', output_prefix: 'chapter'
+  output_dir: 'chapters'
 ).run
 
 # Initialize a new EPUB directory structure

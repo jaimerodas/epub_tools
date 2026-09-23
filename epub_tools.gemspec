@@ -20,7 +20,6 @@ Gem::Specification.new do |spec|
     'rubygems_mfa_required' => 'true'
   }
 
-  spec.add_dependency 'nokogiri', '~> 1.18'
-  spec.add_dependency 'rake', '~> 13.2'
-  spec.add_dependency 'rubyzip', '~> 3.2'
+  spec.add_dependency 'nokogiri', '~> 1.19'
+  spec.add_dependency 'rubyzip', '~> 3.7'
 end

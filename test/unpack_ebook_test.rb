@@ -43,7 +43,7 @@ class UnpackEbookTest < Minitest::Test
   end
 
   def add_remaining_files_to_zip(zip)
-    Dir.glob(File.join(@build_dir, '**', '*'), File::FNM_DOTMATCH).sort.each do |src_path|
+    Dir.glob(File.join(@build_dir, '**', '*')).each do |src_path|
       add_file_or_directory_to_zip(zip, src_path)
     end
   end

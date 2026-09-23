@@ -33,7 +33,7 @@ module EpubTools
 
     def finalize_and_cleanup
       log "Done. Updated EPUB: #{@target_epub} (backup: #{@backup_path})"
-      @workspace.clean
+      FileUtils.rm_rf(build_dir)
       @target_epub
     end
 
@@ -45,7 +45,7 @@ module EpubTools
 
     def unpack_target
       log 'Unpacking target EPUB...'
-      UnpackEbook.new(epub_file: @target_epub, output_dir: @workspace.epub_dir, verbose: verbose).run
+      UnpackEbook.new(epub_file: @target_epub, output_dir: epub_dir, verbose: verbose).run
     end
 
     def read_target_title
@@ -56,7 +56,7 @@ module EpubTools
     end
 
     def detect_conflicts
-      conflicts = chapter_numbers_in(@workspace.chapters_dir) & chapter_numbers_in(epub_oebps_dir)
+      conflicts = chapter_numbers_in(chapters_dir) & chapter_numbers_in(epub_oebps_dir)
       return if conflicts.empty?
 
       raise ArgumentError,

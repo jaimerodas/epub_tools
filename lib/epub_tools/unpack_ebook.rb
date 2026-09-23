@@ -16,8 +16,7 @@ module EpubTools
     # @option options [Boolean] :verbose Whether to print progress to STDOUT (default: false)
     def initialize(options = {})
       @epub_file = File.expand_path(options.fetch(:epub_file))
-      output_dir = options[:output_dir]
-      @output_dir = output_dir.nil? || output_dir.empty? ? default_dir : output_dir
+      @output_dir = options[:output_dir].to_s.empty? ? default_dir : options[:output_dir]
       @verbose = options[:verbose] || false
     end
 
@@ -26,29 +25,12 @@ module EpubTools
     def run
       validate!
       FileUtils.mkdir_p(@output_dir)
-      extract_entries
+      Zip::File.extract_all(@epub_file, @output_dir) { true }
       log "Unpacked #{File.basename(@epub_file)} to #{@output_dir}"
       @output_dir
     end
 
     private
-
-    def extract_entries
-      Zip::File.open(@epub_file) do |zip|
-        zip.each do |entry|
-          extract_entry(entry)
-        end
-      end
-    end
-
-    def extract_entry(entry)
-      if entry.directory?
-        FileUtils.mkdir_p(File.join(@output_dir, entry.name))
-      else
-        FileUtils.mkdir_p(File.join(@output_dir, File.dirname(entry.name)))
-        entry.extract(destination_directory: @output_dir) { true }
-      end
-    end
 
     def default_dir
       [File.dirname(@epub_file), File.basename(@epub_file, '.epub')].join('/')

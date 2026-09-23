@@ -1,26 +1,27 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require 'nokogiri'
-require 'yaml'
 require 'fileutils'
 require_relative 'loggable'
 require_relative 'style_finder'
 require_relative 'xhtml_cleaner'
-require_relative 'chapter_marker_detector'
 
 module EpubTools
-  # Splits a multi-chapter XHTML file into individual chapter files.
+  # Splits a multi-chapter XHTML file into individual chapter files, named +chapter_N.xhtml+. A chapter starts at
+  # a "Chapter N" marker; "Chapter N (continued)" starts chapter N.5 and "Prologue" starts chapter 0.
   class SplitChapters
     include Loggable
+
+    # Tags that can contain chapter markers
+    MARKER_TAGS = %w[p span h2 h3 h4].freeze
+    # Tags that can contain prologue markers
+    PROLOGUE_TAGS = %w[h3 h4].freeze
 
     def initialize(options = {})
       @input_file    = options.fetch(:input_file)
       @book_title    = options.fetch(:book_title)
       @output_dir    = options[:output_dir] || './chapters'
-      @output_prefix = options[:output_prefix] || 'chapter'
       @verbose       = options[:verbose] || false
-      @detector      = ChapterMarkerDetector.new
     end
 
     # Runs the splitter
@@ -28,8 +29,8 @@ module EpubTools
     def run
       FileUtils.mkdir_p(@output_dir)
       doc = Nokogiri::HTML(read_and_strip_problematic_tags)
-      StyleFinder.new({ file_path: @input_file, verbose: @verbose }).run
-      extract_chapters(doc).map { |number, content| write_chapter_file(number, content) }
+      classes = StyleFinder.new({ file_path: @input_file, verbose: @verbose }).run
+      extract_chapters(doc).map { |number, content| write_chapter_file(number, content, classes) }
     end
 
     private
@@ -52,20 +53,21 @@ module EpubTools
     end
 
     def process_node(node, chapters, current_number, current_fragment)
-      marker = @detector.detect(node)
-      if marker
-        start_chapter(chapters, marker_number(marker, node), current_number, current_fragment)
+      number = marker_number(node)
+      if number
+        start_chapter(chapters, number, current_number, current_fragment)
       else
         current_fragment&.add_child(node.dup)
         [current_number, current_fragment]
       end
     end
 
-    def marker_number(marker, node)
-      case marker
-      when :continued then @detector.extract_chapter_number(node) + 0.5
-      when :chapter then @detector.extract_chapter_number(node)
-      when :prologue then 0
+    # @return [Numeric, nil] The chapter a marker node starts, or nil when the node is not a marker
+    def marker_number(node)
+      if MARKER_TAGS.include?(node.name) && (number = node.text[/Chapter\s+(\d+)/i, 1])
+        node.text.match?(/Chapter\s+\d+\s*\(continued\)/i) ? number.to_i + 0.5 : number.to_i
+      elsif PROLOGUE_TAGS.include?(node.name) && node.text.strip.match?(/\APrologue\z/i)
+        0
       end
     end
 
@@ -74,11 +76,11 @@ module EpubTools
       [number, Nokogiri::HTML::DocumentFragment.parse('')]
     end
 
-    def write_chapter_file(label, content)
+    def write_chapter_file(label, content, classes)
       display = display_label(label)
-      filename = File.join(@output_dir, "#{@output_prefix}_#{file_label(label)}.xhtml")
+      filename = File.join(@output_dir, "chapter_#{file_label(label)}.xhtml")
       File.write(filename, build_xhtml_template(display, content))
-      XHTMLCleaner.new({ filename: filename }).run
+      XHTMLCleaner.new({ filename: filename, classes: classes }).run
       log("Extracted: #{filename}")
       filename
     end
@@ -88,7 +90,7 @@ module EpubTools
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
           <head>
-            <title>#{@book_title} - #{display_label}</title>
+            <title>#{@book_title.encode(xml: :text)} - #{display_label}</title>
             <link rel="stylesheet" type="text/css" href="style.css"/>
           </head>
           <body>

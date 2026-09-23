@@ -1,3 +1,10 @@
+PATH
+  remote: .
+  specs:
+    epub_tools (0.8.0)
+      nokogiri (~> 1.19)
+      rubyzip (~> 3.7)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -86,14 +93,13 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  epub_tools!
   minitest (~> 6.0)
-  nokogiri (~> 1.19)
   rake (~> 13.2)
   rdoc (~> 7.2)
   rubocop (~> 1.75)
   rubocop-minitest (~> 0.39.0)
   rubocop-rake (~> 0.7.1)
-  rubyzip (~> 3.2)
   simplecov
   webrick (~> 1.9)
   yard (~> 0.9.44)

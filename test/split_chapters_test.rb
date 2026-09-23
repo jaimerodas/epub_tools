@@ -29,8 +29,7 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def test_run_generates_chapter_files
-    result = EpubTools::SplitChapters.new(input_file: @input, book_title: 'BookTitle', output_dir: @out,
-                                          output_prefix: 'chap').run
+    result = EpubTools::SplitChapters.new(input_file: @input, book_title: 'BookTitle', output_dir: @out).run
 
     verify_return_value(result)
     verify_generated_files_exist(result)
@@ -46,9 +45,9 @@ class SplitChaptersTest < Minitest::Test
 
   def verify_generated_files_exist(result)
     expected_paths = [
-      File.join(@out, 'chap_0.xhtml'),
-      File.join(@out, 'chap_1.xhtml'),
-      File.join(@out, 'chap_2.xhtml')
+      File.join(@out, 'chapter_0.xhtml'),
+      File.join(@out, 'chapter_1.xhtml'),
+      File.join(@out, 'chapter_2.xhtml')
     ]
 
     expected_paths.each do |path|
@@ -58,7 +57,7 @@ class SplitChaptersTest < Minitest::Test
 
     files = Dir.children(@out)
 
-    ['chap_0.xhtml', 'chap_1.xhtml', 'chap_2.xhtml'].each do |file|
+    ['chapter_0.xhtml', 'chapter_1.xhtml', 'chapter_2.xhtml'].each do |file|
       assert_includes files, file
     end
   end
@@ -70,7 +69,7 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def verify_prologue_content
-    prologue = File.read(File.join(@out, 'chap_0.xhtml'))
+    prologue = File.read(File.join(@out, 'chapter_0.xhtml'))
 
     assert_includes prologue, '<h1>Prologue</h1>'
     assert_includes prologue, 'Intro text'
@@ -78,7 +77,7 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def verify_chapter_one_content
-    ch1 = File.read(File.join(@out, 'chap_1.xhtml'))
+    ch1 = File.read(File.join(@out, 'chapter_1.xhtml'))
 
     assert_includes ch1, '<h1>Chapter 1</h1>'
     assert_includes ch1, 'First paragraph'
@@ -86,7 +85,7 @@ class SplitChaptersTest < Minitest::Test
   end
 
   def verify_chapter_two_content
-    ch2 = File.read(File.join(@out, 'chap_2.xhtml'))
+    ch2 = File.read(File.join(@out, 'chapter_2.xhtml'))
 
     assert_includes ch2, '<h1>Chapter 2</h1>'
     assert_includes ch2, 'Second paragraph'
@@ -120,7 +119,7 @@ class SplitChaptersContinuedTest < Minitest::Test
 
   def test_splits_continued_chapters
     result = EpubTools::SplitChapters.new(
-      input_file: @input, book_title: 'Test', output_dir: @out, output_prefix: 'chapter'
+      input_file: @input, book_title: 'Test', output_dir: @out
     ).run
 
     assert_equal 3, result.size
@@ -131,13 +130,20 @@ class SplitChaptersContinuedTest < Minitest::Test
 
   def test_continued_chapter_content
     EpubTools::SplitChapters.new(
-      input_file: @input, book_title: 'Test', output_dir: @out, output_prefix: 'chapter'
+      input_file: @input, book_title: 'Test', output_dir: @out
     ).run
 
     continued = File.read(File.join(@out, 'chapter_1_5.xhtml'))
 
     assert_includes continued, '<h1>Chapter 1.5</h1>'
     assert_includes continued, 'Continued text'
+  end
+
+  def test_book_title_is_escaped
+    EpubTools::SplitChapters.new(input_file: @input, book_title: 'Tom & Jerry', output_dir: @out).run
+    chapter = Nokogiri::XML(File.read(File.join(@out, 'chapter_1.xhtml')), &:strict)
+
+    assert_equal 'Tom & Jerry - Chapter 1', chapter.at_xpath('//xmlns:title').text
   end
 
   def test_continued_marker_case_insensitive
@@ -155,7 +161,7 @@ class SplitChaptersContinuedTest < Minitest::Test
     File.write(@input, content)
 
     result = EpubTools::SplitChapters.new(
-      input_file: @input, book_title: 'Test', output_dir: @out, output_prefix: 'chapter'
+      input_file: @input, book_title: 'Test', output_dir: @out
     ).run
 
     assert_includes result, File.join(@out, 'chapter_5_5.xhtml')

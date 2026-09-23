@@ -3,6 +3,4 @@
 
 require_relative '../lib/epub_tools'
 
-# Use the new object-oriented CLI architecture
-runner = EpubTools::CLI.create_runner
-runner.run(ARGV)
+EpubTools::CLI.run(ARGV)
