@@ -3,12 +3,9 @@
 module EpubTools
   # Generates XHTML content for EPUB files
   class XhtmlGenerator
-    attr_accessor :cover_image_fname
-
     def initialize(title:, author:)
       @title = title
       @author = author
-      @cover_image_fname = nil
     end
 
     # Generates title page XHTML content
@@ -30,7 +27,8 @@ module EpubTools
     end
 
     # Generates cover page XHTML content
-    def build_cover_page
+    # @param image [String] The cover image filename, relative to the page
+    def build_cover_page(image)
       <<~XHTML
         <?xml version="1.0" encoding="UTF-8"?>
         <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
@@ -41,7 +39,7 @@ module EpubTools
           </head>
           <body>
             <div class="cover-image">
-              <img src="#{@cover_image_fname}" alt="Cover"/>
+              <img src="#{image}" alt="Cover"/>
             </div>
           </body>
         </html>

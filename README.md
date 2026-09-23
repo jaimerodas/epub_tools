@@ -37,6 +37,7 @@ Commands:
 - `add`       Add chapter XHTML files into an existing EPUB
 - `pack`      Package an EPUB directory into a `.epub` file
 - `unpack`    Unpack a `.epub` file into a directory
+- `cover`     Add or replace the cover of a `.epub` file
 - `compile`   Takes EPUBs and/or chapter PDFs in a dir and compiles them into a single EPUB
 - `append`    Takes EPUBs and/or chapter PDFs in a dir and appends them to an existing EPUB
 
@@ -61,6 +62,9 @@ epub-tools pack -i epub_dir -o MyBook.epub
 
 # Unpack EPUB
 epub-tools unpack -i MyBook.epub -o unpacked_dir
+
+# Add or replace the cover of an existing EPUB (keeps a MyBook.epub.bak backup)
+epub-tools cover -i MyBook.epub -c cover.jpg
 
 # Full compile workflow: extract, split, initialize, add, and pack into one EPUB
 epub-tools compile -t "My Book" -a "Author Name" -s source_epubs -c cover.jpg -o MyBook.epub

@@ -107,6 +107,7 @@ module EpubTools
         puts '  add       Add chapter XHTML files into an EPUB'
         puts '  pack      Package an EPUB directory into a .epub file'
         puts '  unpack    Unpack an EPUB file into a directory'
+        puts '  cover     Add or replace the cover of an EPUB'
         puts '  compile   Takes EPUBs and/or chapter PDFs in a dir and compiles them into a single EPUB.'
         puts '  append    Takes EPUBs and/or chapter PDFs in a dir and appends them to an existing EPUB.'
       end

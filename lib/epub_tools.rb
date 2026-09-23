@@ -14,6 +14,7 @@ require_relative 'epub_tools/unpack_ebook'
 require_relative 'epub_tools/book_builder'
 require_relative 'epub_tools/compile_book'
 require_relative 'epub_tools/append_book'
+require_relative 'epub_tools/set_cover'
 require_relative 'epub_tools/cli'
 
 # Wrapper for all the other classes

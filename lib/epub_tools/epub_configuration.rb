@@ -7,7 +7,7 @@ module EpubTools
   # Handles configuration parsing and setup for EPUB initialization
   class EpubConfiguration
     attr_reader :title, :author, :destination, :uuid, :modified,
-                :cover_image_path, :cover_image_fname, :cover_image_media_type, :verbose
+                :cover_image_path, :verbose
 
     def initialize(options = {})
       @title = options.fetch(:title)
@@ -16,18 +16,7 @@ module EpubTools
       @uuid = "urn:uuid:#{SecureRandom.uuid}"
       @modified = Time.now.utc.iso8601
       @cover_image_path = options[:cover_image]
-      @cover_image_fname = nil
-      @cover_image_media_type = nil
       @verbose = options[:verbose] || false
-    end
-
-    def cover_image?
-      !@cover_image_path.nil?
-    end
-
-    def update_cover_info(fname, media_type)
-      @cover_image_fname = fname
-      @cover_image_media_type = media_type
     end
   end
 end

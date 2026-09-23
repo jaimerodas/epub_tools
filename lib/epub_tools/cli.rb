@@ -26,7 +26,14 @@ module EpubTools
       registry.register('pdf', EpubTools::PDFConverter, %i[source_dir book_title], { verbose: true })
       registry.register('init', EpubTools::EpubInitializer, %i[title author destination], { verbose: true })
       registry.register('pack', EpubTools::PackEbook, %i[input_dir output_file], { verbose: true })
+      registry.register('cover', EpubTools::SetCover, %i[epub_file cover_image], { verbose: true })
       registry.register('unpack', EpubTools::UnpackEbook, [:epub_file], { verbose: true })
+      register_workflow_commands(registry)
+    end
+
+    # Register the commands that build or extend a whole book
+    # @param registry [CommandRegistry] The command registry to populate
+    def self.register_workflow_commands(registry)
       registry.register('compile', EpubTools::CompileBook, %i[title author source_dir], { verbose: true })
       registry.register('append', EpubTools::AppendBook, %i[source_dir target_epub], { verbose: true })
     end

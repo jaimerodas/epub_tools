@@ -72,6 +72,7 @@ gem install ./epub_tools-*.gem
   - `AddChapters`: Adds chapter files to existing EPUB
   - `PackEbook`: Packages EPUB directories into .epub files
   - `UnpackEbook`: Unpacks .epub files into directories
+  - `SetCover`: Adds or replaces a cover, in a packed EPUB (`cover` command) or an unpacked one (used by `EpubInitializer`)
 - **Workflow Classes**: Orchestrators built on a shared base class
   - `BookBuilder`: Base class with template method pattern (extract → split → convert PDFs → validate → add → pack)
   - `CompileBook`: Creates a new EPUB from source EPUBs (inherits BookBuilder)

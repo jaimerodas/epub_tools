@@ -12,7 +12,6 @@ module EpubTools
       metadata = []
       add_dublin_core_metadata(metadata)
       add_schema_metadata(metadata)
-      add_cover_metadata(metadata) if @config.cover_image_fname
       metadata
     end
 
@@ -22,7 +21,6 @@ module EpubTools
       spine_items = []
 
       add_base_manifest_items(manifest_items)
-      add_cover_items(manifest_items, spine_items) if @config.cover_image_fname
       add_title_items(manifest_items, spine_items)
 
       [manifest_items, spine_items]
@@ -63,19 +61,9 @@ module EpubTools
       metadata << %(<meta property="schema:accessModeSufficient">textual</meta>)
     end
 
-    def add_cover_metadata(metadata)
-      metadata << %(<meta name="cover" content="cover-image"/>)
-    end
-
     def add_base_manifest_items(manifest_items)
       manifest_items << mitem('style', 'style.css', 'text/css')
       manifest_items << mitem('nav', 'nav.xhtml', 'application/xhtml+xml', 'nav')
-    end
-
-    def add_cover_items(manifest_items, spine_items)
-      manifest_items << mitem('cover-image', @config.cover_image_fname, @config.cover_image_media_type, 'cover-image')
-      manifest_items << mitem('cover-page', 'cover.xhtml', 'application/xhtml+xml')
-      spine_items << '<itemref idref="cover-page"/>'
     end
 
     def add_title_items(manifest_items, spine_items)

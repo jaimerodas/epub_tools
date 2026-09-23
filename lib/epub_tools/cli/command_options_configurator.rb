@@ -68,14 +68,9 @@ module EpubTools
       # Configure options for the 'pdf' command
       # @param builder [OptionBuilder] Option builder instance
       def configure_pdf_options(builder)
-        builder.with_custom_options do |opts, options|
-          opts.on('-s DIR', '--source-dir DIR', "Dir with PDFs named like '12a Title.pdf' (required)") do |v|
-            options[:source_dir] = v
-          end
-          opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') do |v|
-            options[:book_title] = v
-          end
-        end.with_output_dir('Output directory for chapter files', './chapters').with_verbose_option
+        builder.with_option('-s DIR', '--source-dir DIR', "Dir of PDFs named '12a Title.pdf' (required)", :source_dir)
+               .with_option('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)', :book_title)
+               .with_output_dir('Output directory for chapter files', './chapters').with_verbose_option
       end
 
       # Configure options for the 'init' command
@@ -107,6 +102,14 @@ module EpubTools
             options[:output_dir] = v
           end
         end.with_verbose_option
+      end
+
+      # Configure options for the 'cover' command
+      # @param builder [OptionBuilder] Option builder instance
+      def configure_cover_options(builder)
+        builder.with_option('-i FILE', '--input-file FILE', 'EPUB to add the cover to (required)', :epub_file)
+               .with_option('-c PATH', '--cover PATH', 'Cover image: jpg, png, gif or svg (required)', :cover_image)
+               .with_verbose_option
       end
 
       # Configure options for the 'append' command
