@@ -58,6 +58,14 @@ class AppendBookTest < Minitest::Test
     ab.send(:detect_conflicts)
   end
 
+  def test_detect_conflicts_with_lettered_chapters
+    ab = build_append_book
+    setup_conflict_dirs(ab, new_chapters: %w[3a 4], existing_chapters: %w[3 3a])
+
+    error = assert_raises(ArgumentError) { ab.send(:detect_conflicts) }
+    assert_match(/chapters 3a already exist/, error.message)
+  end
+
   def test_detect_conflicts_with_half_chapters
     ab = build_append_book
     chapters_dir = File.join(@tmp, 'chapters')

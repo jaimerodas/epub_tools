@@ -4,6 +4,7 @@
 require 'nokogiri'
 require 'fileutils'
 require_relative 'loggable'
+require_relative 'chapter_order'
 
 module EpubTools
   # Moves new chapters into an unpacked EPUB
@@ -32,9 +33,10 @@ module EpubTools
     # It works like this:
     # - First, the *.xhtml files are moved from +chapters_dir+ over to +epub_dir+
     # - Then, new entries will be added to the manifest and spine of the EPUB's +package.opf+ file.
-    #   It will sort the files by extracting the chapter number.
-    # - Finally, it will update the +nav.xhtml+ file with the new chapters. Note that if there's a
-    #   file named +chapter_0.xhtml+, it will be added to the +nav.xhtml+ as the Prologue.
+    #   Chapters are placed in reading order by their number (+chapter_12a+ goes between 12 and 13),
+    #   even when the book already contains later chapters.
+    # - Finally, it will update the +nav.xhtml+ file with the new chapters, labelled with each chapter's
+    #   <tt><h1></tt>. Without one, the label comes from the filename (+chapter_0.xhtml+ is the Prologue).
     # @return [Array<String>] List of moved chapter filenames
     def run
       moved_files = move_chapters
@@ -60,7 +62,7 @@ module EpubTools
 
     def move_chapters
       chapter_files = Dir.glob(File.join(@chapters_dir, '*.xhtml')).sort_by do |path|
-        chapter_sort_key(File.basename(path))
+        ChapterOrder.sort_key(path)
       end
 
       raise ArgumentError, "No .xhtml files found in '#{@chapters_dir}'" if chapter_files.empty?
@@ -69,15 +71,6 @@ module EpubTools
         FileUtils.mv(file, @epub_dir)
       end
       chapter_files.map { |f| File.basename(f) }
-    end
-
-    def chapter_sort_key(filename)
-      basename = File.basename(filename, '.xhtml')
-      if (m = basename.match(/_(\d+)_5\z/))
-        m[1].to_f + 0.5
-      else
-        basename[/\d+/].to_f
-      end
     end
 
     def chapter_id(filename)
@@ -99,7 +92,9 @@ module EpubTools
       doc = Nokogiri::XML(File.read(@nav_file)) { |config| config.default_xml.noblanks }
       nav = doc.at_xpath('//xmlns:nav[@epub:type="toc"]/xmlns:ol')
 
-      filenames.each { |filename| nav.add_child(create_nav_link(doc, filename)) }
+      filenames.each do |filename|
+        ChapterOrder.insert(nav, create_nav_link(doc, filename), filename) { |li| li.at_xpath('xmlns:a')&.[]('href') }
+      end
 
       File.write(@nav_file, doc.to_xml(indent: 2))
     end
@@ -113,7 +108,11 @@ module EpubTools
       li
     end
 
+    # Uses the chapter's own <h1> when it has one, falling back to a label derived from the filename
     def format_chapter_label(filename)
+      heading = Nokogiri::XML(File.read(File.join(@epub_dir, filename))).at_xpath('//*[local-name()="h1"]')
+      return heading.text.strip unless heading.nil? || heading.text.strip.empty?
+
       basename = File.basename(filename, '.xhtml')
       return 'Prologue' if basename == 'chapter_0'
 
@@ -127,7 +126,7 @@ module EpubTools
     def update_opf_for_file(doc, manifest, spine, filename)
       id = chapter_id(filename)
       add_manifest_item(doc, manifest, filename, id) unless manifest_item_exists?(doc, filename)
-      add_spine_itemref(doc, spine, id) unless spine_itemref_exists?(doc, id)
+      add_spine_itemref(doc, spine, id, filename) unless spine_itemref_exists?(doc, id)
     end
 
     def manifest_item_exists?(doc, filename)
@@ -146,10 +145,11 @@ module EpubTools
       manifest.add_child(item)
     end
 
-    def add_spine_itemref(doc, spine, id)
+    def add_spine_itemref(doc, spine, id, filename)
       itemref = Nokogiri::XML::Node.new('itemref', doc)
       itemref['idref'] = id
-      spine.add_child(itemref)
+      hrefs = doc.xpath('//xmlns:manifest/xmlns:item').to_h { |item| [item['id'], item['href']] }
+      ChapterOrder.insert(spine, itemref, filename) { |ref| hrefs[ref['idref']] }
     end
   end
 end

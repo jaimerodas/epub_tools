@@ -65,6 +65,19 @@ module EpubTools
         end
       end
 
+      # Configure options for the 'pdf' command
+      # @param builder [OptionBuilder] Option builder instance
+      def configure_pdf_options(builder)
+        builder.with_custom_options do |opts, options|
+          opts.on('-s DIR', '--source-dir DIR', "Dir with PDFs named like '12a Title.pdf' (required)") do |v|
+            options[:source_dir] = v
+          end
+          opts.on('-t TITLE', '--title TITLE', 'Book title for HTML <title> tags (required)') do |v|
+            options[:book_title] = v
+          end
+        end.with_output_dir('Output directory for chapter files', './chapters').with_verbose_option
+      end
+
       # Configure options for the 'init' command
       # @param builder [OptionBuilder] Option builder instance
       def configure_init_options(builder)
@@ -100,7 +113,7 @@ module EpubTools
       # @param builder [OptionBuilder] Option builder instance
       def configure_append_options(builder)
         builder.with_custom_options do |opts, options|
-          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to append (required)') do |v|
+          opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs and/or chapter PDFs to append (required)') do |v|
             options[:source_dir] = v
           end
           opts.on('-t FILE', '--target-epub FILE', 'Existing EPUB file to append to (required)') do |v|
@@ -115,7 +128,7 @@ module EpubTools
         builder.with_title_option
                .with_author_option
                .with_custom_options do |opts, options|
-                 opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs to extract XHTMLs from (required)') do |v|
+                 opts.on('-s DIR', '--source-dir DIR', 'Directory with EPUBs and/or chapter PDFs (required)') do |v|
                    options[:source_dir] = v
                  end
                  opts.on('-o FILE', '--output FILE', 'EPUB to create (default: book title in source dir)') do |v|

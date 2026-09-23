@@ -191,3 +191,65 @@ class AddChaptersHalfChapterTest < Minitest::Test
     XHTML
   end
 end
+
+class AddChaptersReadingOrderTest < Minitest::Test
+  def setup
+    @tmp = Dir.mktmpdir
+    @chapters_dir = File.join(@tmp, 'chapters')
+    @epub_dir = File.join(@tmp, 'OEBPS')
+    FileUtils.mkdir_p([@chapters_dir, @epub_dir])
+    create_book_with_two_chapters
+    write_chapter('chapter_1b.xhtml', '<h1>Chapter 1b: Later</h1>')
+    write_chapter('chapter_1a.xhtml', '<h1>Chapter 1a: Side</h1>')
+    write_chapter('chapter_3.xhtml', '<p>No heading</p>')
+  end
+
+  def teardown
+    FileUtils.remove_entry(@tmp)
+  end
+
+  def test_inserts_chapters_in_reading_order_with_their_headings
+    EpubTools::AddChapters.new(chapters_dir: @chapters_dir, oebps_dir: @epub_dir).run
+
+    opf = Nokogiri::XML(File.read(File.join(@epub_dir, 'package.opf')))
+    nav = Nokogiri::XML(File.read(File.join(@epub_dir, 'nav.xhtml'))).remove_namespaces!
+    spine = opf.xpath('//xmlns:itemref').map { |i| i['idref'] }
+
+    assert_equal %w[title chap1 chapter_1a chapter_1b chap2 chap3], spine
+    assert_equal ['Title Page', 'Chapter 1', 'Chapter 1a: Side', 'Chapter 1b: Later', 'Chapter 2', 'Chapter 3'],
+                 nav.xpath('//nav/ol/li/a').map(&:text)
+  end
+
+  private
+
+  def write_chapter(name, body)
+    File.write(File.join(@chapters_dir, name), "<html xmlns=\"http://www.w3.org/1999/xhtml\"><body>#{body}</body></html>")
+  end
+
+  def create_book_with_two_chapters
+    File.write(File.join(@epub_dir, 'package.opf'), <<~XML)
+      <?xml version="1.0"?>
+      <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="en">
+        <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"></metadata>
+        <manifest>
+          <item id="title" href="title.xhtml" media-type="application/xhtml+xml"/>
+          <item id="chap1" href="chapter_1.xhtml" media-type="application/xhtml+xml"/>
+          <item id="chap2" href="chapter_2.xhtml" media-type="application/xhtml+xml"/>
+        </manifest>
+        <spine><itemref idref="title"/><itemref idref="chap1"/><itemref idref="chap2"/></spine>
+      </package>
+    XML
+    File.write(File.join(@epub_dir, 'nav.xhtml'), <<~XHTML)
+      <?xml version="1.0" encoding="utf-8"?>
+      <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en">
+        <body>
+          <nav epub:type="toc" id="toc"><ol>
+            <li><a href="title.xhtml">Title Page</a></li>
+            <li><a href="chapter_1.xhtml">Chapter 1</a></li>
+            <li><a href="chapter_2.xhtml">Chapter 2</a></li>
+          </ol></nav>
+        </body>
+      </html>
+    XHTML
+  end
+end

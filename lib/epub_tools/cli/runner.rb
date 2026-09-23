@@ -103,11 +103,12 @@ module EpubTools
         puts '  init      Initialize a bare-bones EPUB'
         puts '  extract   Extract XHTML files from EPUBs'
         puts '  split     Split XHTML into separate XHTMLs per chapter'
+        puts '  pdf       Convert chapter PDFs into chapter XHTMLs'
         puts '  add       Add chapter XHTML files into an EPUB'
         puts '  pack      Package an EPUB directory into a .epub file'
         puts '  unpack    Unpack an EPUB file into a directory'
-        puts '  compile   Takes EPUBs in a dir and splits, cleans, and compiles into a single EPUB.'
-        puts '  append    Extracts and splits EPUBs from a dir and appends them to an existing EPUB.'
+        puts '  compile   Takes EPUBs and/or chapter PDFs in a dir and compiles them into a single EPUB.'
+        puts '  append    Takes EPUBs and/or chapter PDFs in a dir and appends them to an existing EPUB.'
       end
     end
   end

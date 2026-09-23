@@ -58,6 +58,18 @@ class ChapterValidatorTest < Minitest::Test
     assert_match(/Missing chapter numbers: 2/, error.message)
   end
 
+  def test_lettered_chapters_are_not_required
+    create_chapter_files(%w[1 1a 1b 2])
+
+    assert_silent { @validator.validate }
+  end
+
+  def test_validates_only_side_chapters
+    create_chapter_files(%w[7a 7b])
+
+    assert_silent { @validator.validate }
+  end
+
   private
 
   def create_chapter_files(numbers)

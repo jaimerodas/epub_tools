@@ -56,25 +56,18 @@ module EpubTools
     end
 
     def detect_conflicts
-      new_numbers = chapter_numbers_in(@workspace.chapters_dir)
-      existing_numbers = chapter_numbers_in(epub_oebps_dir)
-      conflicts = new_numbers & existing_numbers
+      conflicts = chapter_numbers_in(@workspace.chapters_dir) & chapter_numbers_in(epub_oebps_dir)
       return if conflicts.empty?
 
-      formatted = conflicts.sort.map { |n| n == n.to_i ? n.to_i.to_s : n.to_s }
       raise ArgumentError,
-            "Chapter number conflict: chapters #{formatted.join(', ')} already exist in the target EPUB. " \
-            'Renumber the source chapters or remove conflicting chapters from the target.'
+            "Chapter number conflict: chapters #{conflicts.sort_by(&:to_f).join(', ')} already exist in the " \
+            'target EPUB. Renumber the source chapters or remove conflicting chapters from the target.'
     end
 
+    # @return [Array<String>] Chapter numbers as written in filenames: chapter_3_5 is "3.5", chapter_3a is "3a"
     def chapter_numbers_in(dir)
-      Dir.glob(File.join(dir, 'chapter_*.xhtml')).filter_map do |path|
-        basename = File.basename(path, '.xhtml')
-        if (m = basename.match(/_(\d+)_5\z/))
-          m[1].to_f + 0.5
-        elsif (m = basename.match(/_(\d+)\z/))
-          m[1].to_f
-        end
+      Dir.glob(File.join(dir, 'chapter_*.xhtml')).map do |path|
+        File.basename(path, '.xhtml').delete_prefix('chapter_').tr('_', '.')
       end
     end
   end

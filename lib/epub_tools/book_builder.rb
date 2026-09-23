@@ -4,13 +4,15 @@ require 'fileutils'
 require_relative 'loggable'
 require_relative 'xhtml_extractor'
 require_relative 'split_chapters'
+require_relative 'pdf_converter'
 require_relative 'add_chapters'
 require_relative 'pack_ebook'
 require_relative 'compile_workspace'
 require_relative 'chapter_validator'
 
 module EpubTools
-  # Base class for book-building workflows (compile and append).
+  # Base class for book-building workflows (compile and append). Sources can be EPUBs (split into chapters)
+  # and/or chapter PDFs (see {PDFConverter}[rdoc-ref:EpubTools::PDFConverter] for the naming convention).
   # Uses template method pattern — subclasses override hooks to customize behavior.
   class BookBuilder
     include Loggable
@@ -31,6 +33,7 @@ module EpubTools
       prepare_epub
       extract_xhtmls
       split_xhtmls
+      convert_pdfs
       validate_chapters
       before_add_chapters
       add_chapters
@@ -76,6 +79,15 @@ module EpubTools
       SplitChapters.new(
         input_file: xhtml_file, book_title: book_title,
         output_dir: @workspace.chapters_dir, output_prefix: 'chapter', verbose: verbose
+      ).run
+    end
+
+    def convert_pdfs
+      return if Dir.glob(File.join(source_dir, '*.pdf')).empty?
+
+      log "Converting PDFs in '#{source_dir}'..."
+      PDFConverter.new(
+        source_dir: source_dir, book_title: book_title, output_dir: @workspace.chapters_dir, verbose: verbose
       ).run
     end
 

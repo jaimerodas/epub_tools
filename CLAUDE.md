@@ -66,19 +66,22 @@ gem install ./epub_tools-*.gem
   - `CommandOptionsConfigurator`: Handles command-specific option configuration
 - **Core Classes**: Individual operation classes for EPUB manipulation
   - `XHTMLExtractor`: Extracts XHTML files from EPUB archives
+  - `PDFConverter`: Converts chapter PDFs (named `12a Title.pdf`) into chapter XHTMLs via poppler's `pdftohtml -xml`
   - `SplitChapters`: Splits XHTML files into separate chapters
   - `EpubInitializer`: Creates new EPUB directory structure (uses configuration pattern)
   - `AddChapters`: Adds chapter files to existing EPUB
   - `PackEbook`: Packages EPUB directories into .epub files
   - `UnpackEbook`: Unpacks .epub files into directories
 - **Workflow Classes**: Orchestrators built on a shared base class
-  - `BookBuilder`: Base class with template method pattern (extract → split → validate → add → pack)
+  - `BookBuilder`: Base class with template method pattern (extract → split → convert PDFs → validate → add → pack)
   - `CompileBook`: Creates a new EPUB from source EPUBs (inherits BookBuilder)
   - `AppendBook`: Appends chapters from source EPUBs to an existing EPUB (inherits BookBuilder)
 - **Supporting Classes**: SOLID-designed helper classes
   - `CompileWorkspace`: Manages build directories for book-building workflows
   - `ChapterValidator`: Validates chapter sequence completeness
   - `ChapterMarkerDetector`: Detects chapter boundary markers (Chapter N, Chapter N (continued), Prologue)
+  - `PDFLayout`: Rebuilds paragraphs, italics, scene breaks and lists from `pdftohtml -xml` line positions
+  - `ChapterOrder`: Reading order of chapter files (1, 1_5, 1a, 1b, 2); inserts added chapters in place
   - `EpubConfiguration`: Configuration object for EPUB initialization
   - `XhtmlGenerator`: Generates XHTML templates for EPUB content
   - `EpubMetadataBuilder`: Builds OPF metadata content
