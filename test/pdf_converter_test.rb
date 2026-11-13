@@ -35,11 +35,18 @@ class PDFConverterTest < Minitest::Test
     assert_includes File.read(File.join(@output, 'chapter_12a.xhtml')), '<p>Tom &amp; Jerry’s text.</p>'
   end
 
+  def test_names_the_epilogue
+    FileUtils.touch(File.join(@source, 'Epilogue One Month.pdf'))
+
+    assert_equal(['chapter_epilogue.xhtml'], converter.run.map { |path| File.basename(path) })
+    assert_equal 'Epilogue: One Month', heading('chapter_epilogue.xhtml')
+  end
+
   def test_rejects_pdfs_without_a_chapter_number
-    FileUtils.touch(File.join(@source, 'Epilogue.pdf'))
+    FileUtils.touch(File.join(@source, 'Afterword.pdf'))
 
     error = assert_raises(ArgumentError) { converter.run }
-    assert_match(/Epilogue\.pdf/, error.message)
+    assert_match(/Afterword\.pdf/, error.message)
   end
 
   def test_does_nothing_without_pdfs

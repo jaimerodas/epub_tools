@@ -81,6 +81,7 @@ epub-tools append -s new_epubs -t MyBook.epub
 0 Dramatis Personae.pdf        -> "Dramatis Personae" (chapter 0 is front matter)
 1 First Day.pdf                -> "Chapter 1: First Day"
 1a An Interlude.pdf            -> "Chapter 1a: An Interlude", between 1 and 2
+Epilogue One Month.pdf         -> "Epilogue: One Month", after every chapter
 ```
 
 Paragraphs, italics, bold and scene breaks (`***`) are rebuilt from the PDF layout, and the heading typed

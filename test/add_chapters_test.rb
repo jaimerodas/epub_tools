@@ -202,6 +202,7 @@ class AddChaptersReadingOrderTest < Minitest::Test
     write_chapter('chapter_1b.xhtml', '<h1>Chapter 1b: Later</h1>')
     write_chapter('chapter_1a.xhtml', '<h1>Chapter 1a: Side</h1>')
     write_chapter('chapter_3.xhtml', '<p>No heading</p>')
+    write_chapter('chapter_epilogue.xhtml', '<h1>Epilogue: After</h1>')
   end
 
   def teardown
@@ -215,8 +216,9 @@ class AddChaptersReadingOrderTest < Minitest::Test
     nav = Nokogiri::XML(File.read(File.join(@epub_dir, 'nav.xhtml'))).remove_namespaces!
     spine = opf.xpath('//xmlns:itemref').map { |i| i['idref'] }
 
-    assert_equal %w[title chap1 chapter_1a chapter_1b chap2 chap3], spine
-    assert_equal ['Title Page', 'Chapter 1', 'Chapter 1a: Side', 'Chapter 1b: Later', 'Chapter 2', 'Chapter 3'],
+    assert_equal %w[title chap1 chapter_1a chapter_1b chap2 chap3 chapter_epilogue], spine
+    assert_equal ['Title Page', 'Chapter 1', 'Chapter 1a: Side', 'Chapter 1b: Later', 'Chapter 2', 'Chapter 3',
+                  'Epilogue: After'],
                  nav.xpath('//nav/ol/li/a').map(&:text)
   end
 

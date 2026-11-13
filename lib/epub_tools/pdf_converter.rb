@@ -13,10 +13,11 @@ module EpubTools
   #
   # PDFs must be named <tt>"<number><optional letters> <Title>.pdf"</tt>: <tt>13a I Hear You.pdf</tt> becomes
   # +chapter_13a.xhtml+, headed "Chapter 13a: I Hear You". Chapter 0 is front matter, headed with just its title.
+  # <tt>Epilogue One Month.pdf</tt> becomes +chapter_epilogue.xhtml+, headed "Epilogue: One Month".
   class PDFConverter
     include Loggable
 
-    FILENAME = /\A(?<number>\d+)(?<suffix>[a-z]*) +(?<title>.+)\z/
+    FILENAME = /\A(?:(?<number>\d+)(?<suffix>[a-z]*)|(?<epilogue>Epilogue)) +(?<title>.+)\z/
 
     # Initializes the class
     # @param options [Hash] Configuration options
@@ -53,17 +54,23 @@ module EpubTools
 
     def convert(pdf)
       number, title = chapter_name(pdf)
-      label = number == '0' ? title : "Chapter #{number}: #{title}"
+      label = case number
+              when '0' then title
+              when 'epilogue' then "Epilogue: #{title}"
+              else "Chapter #{number}: #{title}"
+              end
       path = File.join(@output_dir, "chapter_#{number}.xhtml")
       File.write(path, well_formed(build_xhtml(label.encode(xml: :text), chapter_body(pdf))))
       log "Converted: #{File.basename(pdf)} -> #{File.basename(path)}"
       path
     end
 
-    # @return [Array(String, String)] The chapter number without leading zeros (e.g. "13a") and its title
+    # @return [Array(String, String)] The chapter number without leading zeros (e.g. "13a", or "epilogue") and its
+    #   title
     def chapter_name(pdf)
       name = parse_name(pdf)
-      ["#{name[:number].to_i}#{name[:suffix]}", name[:title].tr("'", '’')]
+      number = name[:epilogue] ? 'epilogue' : "#{name[:number].to_i}#{name[:suffix]}"
+      [number, name[:title].tr("'", '’')]
     end
 
     def chapter_body(pdf)

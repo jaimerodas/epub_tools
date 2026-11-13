@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module EpubTools
-  # Reading order of chapter files: chapter_1, chapter_1_5, chapter_1a, chapter_1b, chapter_2
+  # Reading order of chapter files: chapter_1, chapter_1_5, chapter_1a, chapter_1b, chapter_2, ..., chapter_epilogue
   module ChapterOrder
     module_function
 
@@ -9,6 +9,8 @@ module EpubTools
     # @return [Array] A key that sorts chapter filenames in reading order
     def sort_key(filename)
       basename = File.basename(filename, '.xhtml')
+      return [Float::INFINITY, ''] if basename == 'chapter_epilogue'
+
       if (m = basename.match(/_(\d+)_5\z/))
         [m[1].to_f + 0.5, '']
       else
