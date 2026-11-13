@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.files         = `git ls-files`.split("\n")
   spec.require_paths = ['lib']
   spec.executables   = ['epub-tools']
-  spec.required_ruby_version = '>= 3.2'
+  spec.required_ruby_version = '>= 4.0'
   spec.metadata = {
     'source_code_uri' => 'https://github.com/jaimerodas/epub_tools/tree/main',
     'homepage_uri' => 'https://github.com/jaimerodas/epub_tools',

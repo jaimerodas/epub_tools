@@ -7,7 +7,7 @@
 ## Installation
 
 ### Requirements
-- Ruby 3.2 or higher
+- Ruby 4.0 or higher
 - [poppler](https://poppler.freedesktop.org/) (`brew install poppler`), only for PDF sources
 
 ### Install from RubyGems
